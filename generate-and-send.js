@@ -14,12 +14,12 @@ const PROMPT = "A Minion in a random funny or dramatic pose, vibrant cartoon sty
 const NZ_LOCALE = 'en-NZ';
 const NZ_TZ = 'Pacific/Auckland';
 
-function nzDate() {
-	return new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-');
+function nzDateSeed() {
+	return new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('');
 }
 
 function getImageUrl() {
-	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}?date=${nzDate()}&nologo=true`;
+	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}?seed=${nzDateSeed()}&nologo=true`;
 }
 
 async function getQuote() {
