@@ -40,7 +40,7 @@ async function sendEmail(imageUrl, quote, author) {
 		body: JSON.stringify({
 			from: SENDER_EMAIL,
 			to: RECIPIENT_EMAIL.split(',').map((e) => e.trim()),
-			subject: `Daily inspo — ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`,
+			subject: `Good Morning — ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`,
 			html,
 		}),
 	});
