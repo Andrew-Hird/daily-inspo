@@ -15,10 +15,19 @@ function getImageUrl() {
 	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}`;
 }
 
-async function sendEmail(imageUrl) {
+async function getQuote() {
+	const response = await fetch('https://zenquotes.io/api/random');
+	if (!response.ok) throw new Error(`ZenQuotes error ${response.status}`);
+	const [{ q: quote, a: author }] = await response.json();
+	return { quote, author };
+}
+
+async function sendEmail(imageUrl, quote, author) {
 	const html = `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
       <img src="${imageUrl}" alt="Daily minion" style="width: 100%; border-radius: 8px;" />
+      <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${quote}"</p>
+      <p style="font-size: 14px; color: #888; margin: 0;">— ${author}</p>
     </div>
   `;
 
@@ -48,8 +57,12 @@ try {
 	const imageUrl = getImageUrl();
 	console.log(`Image URL: ${imageUrl}`);
 
+	console.log("Fetching quote...");
+	const { quote, author } = await getQuote();
+	console.log(`Quote: "${quote}" — ${author}`);
+
 	console.log("Sending email via Resend...");
-	const result = await sendEmail(imageUrl);
+	const result = await sendEmail(imageUrl, quote, author);
 	console.log(`Email sent successfully (id: ${result.id})`);
 } catch (err) {
 	console.error("Error:", err.message);
