@@ -12,7 +12,8 @@ if (!RESEND_API_KEY || !RECIPIENT_EMAIL || !SENDER_EMAIL) {
 const PROMPT = "A Minion in a random funny or dramatic pose, vibrant cartoon style, different colorful setting each day — could be an office, beach, space, jungle, kitchen, or anywhere unexpected, bright cheerful lighting, inspirational poster aesthetic, wide aspect ratio";
 
 function getImageUrl() {
-	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}`;
+	const date = new Date().toISOString().slice(0, 10);
+	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}?date=${date}&nologo=true`;
 }
 
 async function getQuote() {
