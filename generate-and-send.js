@@ -11,9 +11,15 @@ if (!RESEND_API_KEY || !RECIPIENT_EMAIL || !SENDER_EMAIL) {
 
 const PROMPT = "A Minion in a random funny or dramatic pose, vibrant cartoon style, different colorful setting each day — could be an office, beach, space, jungle, kitchen, or anywhere unexpected, bright cheerful lighting, inspirational poster aesthetic, wide aspect ratio";
 
+const NZ_LOCALE = 'en-NZ';
+const NZ_TZ = 'Pacific/Auckland';
+
+function nzDate() {
+	return new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('-');
+}
+
 function getImageUrl() {
-	const date = new Date().toISOString().slice(0, 10);
-	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}?date=${date}&nologo=true`;
+	return `https://image.pollinations.ai/prompt/${encodeURIComponent(PROMPT)}?date=${nzDate()}&nologo=true`;
 }
 
 async function getQuote() {
@@ -41,7 +47,7 @@ async function sendEmail(imageUrl, quote, author) {
 		body: JSON.stringify({
 			from: SENDER_EMAIL,
 			to: RECIPIENT_EMAIL.split(',').map((e) => e.trim()),
-			subject: `Good Morning — ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`,
+			subject: `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`,
 			html,
 		}),
 	});
