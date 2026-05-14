@@ -1,21 +1,21 @@
 # daily-inspo
 
-A GitHub Actions workflow that generates a daily AI landscape image using the Google Gemini API and emails it via Resend.
+A GitHub Actions workflow that generates a daily AI minion image using Pollinations and emails it with an inspirational quote via Resend.
 
 ## How it works
 
-1. A cron workflow runs every day at 8am UTC
-2. It calls the Gemini `gemini-2.0-flash-preview-image-generation` model to generate a photorealistic golden-hour landscape
-3. The image is sent as an inline HTML email via the Resend API
+1. A cron workflow runs every day at 8am NZT (20:00 UTC)
+2. It generates a unique daily image via [Pollinations](https://pollinations.ai) — same image all day, new one each morning
+3. It fetches a random inspirational quote from [ZenQuotes](https://zenquotes.io)
+4. The image and quote are sent as an HTML email via the Resend API
 
 ## Setup
 
 ### Prerequisites
 
 - A GitHub repository with Actions enabled
-- A [Google AI Studio](https://aistudio.google.com/) account (for the Gemini API key)
-- A [Resend](https://resend.com/) account (for sending email)
-- A verified sender domain/address in Resend
+- A [Resend](https://resend.com/) account
+- A verified sender domain in Resend with SPF, DKIM, and DMARC configured
 
 ### GitHub Actions secrets
 
@@ -23,23 +23,21 @@ Add the following secrets under **Settings → Secrets and variables → Actions
 
 | Secret | Description |
 |---|---|
-| `GEMINI_API_KEY` | Your Google AI Studio API key |
 | `RESEND_API_KEY` | Your Resend API key |
-| `SENDER_EMAIL` | The verified sender address (e.g. `inspo@yourdomain.com`) |
-| `RECIPIENT_EMAIL` | The address to receive the daily image |
+| `SENDER_EMAIL` | The verified sender address (e.g. `hello@yourdomain.com`) |
+| `RECIPIENT_EMAIL` | One or more recipient addresses, comma-separated |
 
 ### Trigger manually
 
-Go to **Actions → Daily AI Image → Run workflow** to send a test email immediately without waiting for the daily schedule.
+Go to **Actions → Daily AI Image → Run workflow** to send a test email immediately.
 
 ### Change the schedule
 
-Edit the `cron` value in [`.github/workflows/daily-image.yml`](.github/workflows/daily-image.yml). The current value `0 8 * * *` runs at 8:00 AM UTC every day. Use [crontab.guru](https://crontab.guru) to adjust it.
+Edit the `cron` value in [`.github/workflows/daily-image.yml`](.github/workflows/daily-image.yml). The current value `0 20 * * *` runs at 8:00 AM NZST (9:00 AM NZDT). Use [crontab.guru](https://crontab.guru) to adjust it.
 
 ## Local testing
 
 ```bash
-export GEMINI_API_KEY=...
 export RESEND_API_KEY=...
 export SENDER_EMAIL=you@example.com
 export RECIPIENT_EMAIL=you@example.com
