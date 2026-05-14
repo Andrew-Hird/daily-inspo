@@ -18,7 +18,6 @@ jobs:
       - name: Generate image and send email
         run: node generate-and-send.js
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
