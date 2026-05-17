@@ -15,6 +15,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install dependencies
+        run: npm install
+
       - name: Generate image and send email
         run: node generate-and-send.js
         env:

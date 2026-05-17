@@ -38,9 +38,11 @@ Edit the `cron` value in [`.github/workflows/daily-image.yml`](.github/workflows
 ## Local testing
 
 ```bash
+npm install
+
 export RESEND_API_KEY=...
+export RESEND_AUDIENCE_ID=...
 export SENDER_EMAIL=you@example.com
-export RECIPIENT_EMAIL=you@example.com
 
 node generate-and-send.js
 ```
