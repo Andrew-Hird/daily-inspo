@@ -24,8 +24,8 @@ Add the following secrets under **Settings → Secrets and variables → Actions
 | Secret | Description |
 |---|---|
 | `RESEND_API_KEY` | Your Resend API key |
+| `RESEND_AUDIENCE_ID` | The ID of your Resend Audience (found in Resend → Audiences) |
 | `SENDER_EMAIL` | The verified sender address (e.g. `hello@yourdomain.com`) |
-| `RECIPIENT_EMAIL` | One or more recipient addresses, comma-separated |
 
 ### Trigger manually
 

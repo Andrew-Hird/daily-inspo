@@ -1,10 +1,10 @@
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const RECIPIENT_EMAIL = process.env.RECIPIENT_EMAIL;
+const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 const SENDER_EMAIL = process.env.SENDER_EMAIL;
 
-if (!RESEND_API_KEY || !RECIPIENT_EMAIL || !SENDER_EMAIL) {
+if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID || !SENDER_EMAIL) {
 	console.error(
-		"Missing required environment variables: RESEND_API_KEY, RECIPIENT_EMAIL, SENDER_EMAIL",
+		"Missing required environment variables: RESEND_API_KEY, RESEND_AUDIENCE_ID, SENDER_EMAIL",
 	);
 	process.exit(1);
 }
@@ -29,7 +29,19 @@ async function getQuote() {
 	return { quote, author };
 }
 
-async function sendEmail(imageUrl, quote, author) {
+async function getAudienceEmails() {
+	const response = await fetch(`https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`, {
+		headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+	});
+	if (!response.ok) {
+		const body = await response.text();
+		throw new Error(`Resend contacts error ${response.status}: ${body}`);
+	}
+	const { data } = await response.json();
+	return data.filter((c) => !c.unsubscribed).map((c) => c.email);
+}
+
+async function sendEmail(recipients, imageUrl, quote, author) {
 	const html = `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
       <img src="${imageUrl}" alt="Daily minion" style="width: 60%; border-radius: 8px; display: block; margin: 0 auto;" />
@@ -46,7 +58,7 @@ async function sendEmail(imageUrl, quote, author) {
 		},
 		body: JSON.stringify({
 			from: SENDER_EMAIL,
-			to: RECIPIENT_EMAIL.split(',').map((e) => e.trim()),
+			to: recipients,
 			subject: `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`,
 			html,
 		}),
@@ -68,8 +80,12 @@ try {
 	const { quote, author } = await getQuote();
 	console.log(`Quote: "${quote}" — ${author}`);
 
-	console.log("Sending email via Resend...");
-	const result = await sendEmail(imageUrl, quote, author);
+	console.log("Fetching audience contacts...");
+	const recipients = await getAudienceEmails();
+	if (recipients.length === 0) throw new Error('No subscribed contacts in audience');
+	console.log(`Sending to ${recipients.length} recipient(s)...`);
+
+	const result = await sendEmail(recipients, imageUrl, quote, author);
 	console.log(`Email sent successfully (id: ${result.id})`);
 } catch (err) {
 	console.error("Error:", err.message);

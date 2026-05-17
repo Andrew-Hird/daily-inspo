@@ -19,5 +19,5 @@ jobs:
         run: node generate-and-send.js
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
