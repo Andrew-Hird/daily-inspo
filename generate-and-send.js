@@ -1,17 +1,20 @@
+import { writeFileSync } from 'node:fs';
 import { Resend } from 'resend';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 const SENDER_EMAIL = process.env.SENDER_EMAIL;
 
-if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID || !SENDER_EMAIL) {
+const isFetchImageMode = process.argv[2] === '--fetch-image';
+
+if (!isFetchImageMode && (!RESEND_API_KEY || !RESEND_AUDIENCE_ID || !SENDER_EMAIL)) {
 	console.error(
 		"Missing required environment variables: RESEND_API_KEY, RESEND_AUDIENCE_ID, SENDER_EMAIL",
 	);
 	process.exit(1);
 }
 
-const resend = new Resend(RESEND_API_KEY);
+const resend = isFetchImageMode ? null : new Resend(RESEND_API_KEY);
 
 const PROMPTS = [
 	"A single Minion sitting cross-legged on a lily pad, soft watercolour painting style, muted pastels, misty Japanese pond at dawn, reflections in still water, meditative mood",
@@ -49,10 +52,6 @@ const PROMPTS = [
 const NZ_LOCALE = 'en-NZ';
 const NZ_TZ = 'Pacific/Auckland';
 
-function nzDateSeed() {
-	return new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('');
-}
-
 function nzDayOfYear() {
 	const now = new Date();
 	const nzFormatter = new Intl.DateTimeFormat(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -66,8 +65,23 @@ function getDailyPrompt() {
 	return PROMPTS[nzDayOfYear() % PROMPTS.length];
 }
 
-function getImageUrl() {
-	return `https://image.pollinations.ai/prompt/${encodeURIComponent(getDailyPrompt())}?seed=${nzDateSeed()}&nologo=true`;
+async function fetchWithRetry(url, maxRetries = 3, options = {}) {
+	let lastError;
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		if (attempt > 0) {
+			const delayMs = 1000 * 2 ** (attempt - 1);
+			console.warn(`Retry attempt ${attempt} after ${delayMs}ms...`);
+			await new Promise(resolve => setTimeout(resolve, delayMs));
+		}
+		const response = await fetch(url, options);
+		if (response.ok) return response;
+		if (response.status === 429 || response.status >= 500) {
+			lastError = new Error(`HTTP ${response.status}`);
+			continue;
+		}
+		throw new Error(`HTTP ${response.status} from ${url}`);
+	}
+	throw lastError;
 }
 
 async function getQuote() {
@@ -77,19 +91,34 @@ async function getQuote() {
 	return { quote, author };
 }
 
-async function sendBroadcast(imageUrl, quote, author) {
+async function sendBroadcast(imageSrc, quote, author) {
 	const html = `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
-      <img src="${imageUrl}" alt="Daily minion" style="width: 80%; border-radius: 8px; display: block; margin: 0 auto;" />
+      <img src="${imageSrc}" alt="Daily minion" style="width: 80%; border-radius: 8px; display: block; margin: 0 auto;" />
       <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${quote}"</p>
       <p style="font-size: 14px; color: #888; margin: 0;">— ${author}</p>
     </div>
   `;
 
+	const subject = `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`;
+	const testEmail = process.env.TEST_EMAIL;
+
+	if (testEmail) {
+		const { error } = await resend.emails.send({
+			from: SENDER_EMAIL,
+			to: testEmail,
+			subject: `[TEST] ${subject}`,
+			html,
+		});
+		if (error) throw new Error(`Resend error: ${error.message}`);
+		console.log(`Test email sent to ${testEmail}`);
+		return;
+	}
+
 	const { data, error } = await resend.broadcasts.create({
 		audienceId: RESEND_AUDIENCE_ID,
 		from: SENDER_EMAIL,
-		subject: `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`,
+		subject,
 		html,
 		send: true,
 	});
@@ -98,18 +127,49 @@ async function sendBroadcast(imageUrl, quote, author) {
 	return data;
 }
 
-try {
-	const imageUrl = getImageUrl();
-	console.log(`Image URL: ${imageUrl}`);
+if (isFetchImageMode) {
+	const HF_TOKEN = process.env.HF_TOKEN;
+	if (!HF_TOKEN) {
+		console.error("Missing required environment variable: HF_TOKEN");
+		process.exit(1);
+	}
+	try {
+		const prompt = getDailyPrompt();
+		console.log(`Generating image for prompt: ${prompt}`);
+		const response = await fetchWithRetry(
+			'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+			3,
+			{
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${HF_TOKEN}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ inputs: prompt }),
+			}
+		);
+		const buffer = Buffer.from(await response.arrayBuffer());
+		writeFileSync('daily.jpg', buffer);
+		console.log('Saved daily.jpg');
+	} catch (err) {
+		console.error("Error generating image:", err.message);
+		process.exit(1);
+	}
+} else {
+	try {
+		const imageSrc = process.env.DAILY_IMAGE_URL;
+		if (!imageSrc) throw new Error("Missing required environment variable: DAILY_IMAGE_URL");
 
-	console.log("Fetching quote...");
-	const { quote, author } = await getQuote();
-	console.log(`Quote: "${quote}" — ${author}`);
+		console.log(`Image: ${imageSrc}`);
 
-	console.log("Sending broadcast...");
-	const result = await sendBroadcast(imageUrl, quote, author);
-	console.log(`Broadcast sent successfully (id: ${result.id})`);
-} catch (err) {
-	console.error("Error:", err.message);
-	process.exit(1);
+		console.log("Fetching quote...");
+		const { quote, author } = await getQuote();
+		console.log(`Quote: "${quote}" — ${author}`);
+
+		console.log("Sending email...");
+		await sendBroadcast(imageSrc, quote, author);
+	} catch (err) {
+		console.error("Error:", err.message);
+		process.exit(1);
+	}
 }
