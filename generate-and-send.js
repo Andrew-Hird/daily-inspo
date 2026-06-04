@@ -73,13 +73,20 @@ async function fetchWithRetry(url, maxRetries = 3, options = {}) {
 			console.warn(`Retry attempt ${attempt} after ${delayMs}ms...`);
 			await new Promise(resolve => setTimeout(resolve, delayMs));
 		}
-		const response = await fetch(url, options);
-		if (response.ok) return response;
-		if (response.status === 429 || response.status >= 500) {
-			lastError = new Error(`HTTP ${response.status}`);
-			continue;
+		try {
+			const response = await fetch(url, options);
+			if (response.ok) return response;
+			if (response.status === 429 || response.status >= 500) {
+				lastError = new Error(`HTTP ${response.status}`);
+				continue;
+			}
+			throw new Error(`HTTP ${response.status} from ${url}`);
+		} catch (err) {
+			if (err.message.startsWith('HTTP ')) throw err; // non-retriable HTTP error
+			// network-level error — log cause and retry
+			lastError = err;
+			console.warn(`Network error (attempt ${attempt + 1}): ${err.message}${err.cause ? ` — ${err.cause.message}` : ''}`);
 		}
-		throw new Error(`HTTP ${response.status} from ${url}`);
 	}
 	throw lastError;
 }
@@ -152,7 +159,7 @@ if (isFetchImageMode) {
 		writeFileSync('daily.jpg', buffer);
 		console.log('Saved daily.jpg');
 	} catch (err) {
-		console.error("Error generating image:", err.message);
+		console.error("Error generating image:", err.message, err.cause ? `(${err.cause.message})` : '');
 		process.exit(1);
 	}
 } else {
