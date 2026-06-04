@@ -1,4 +1,5 @@
 import { writeFileSync } from 'node:fs';
+import { HfInference } from '@huggingface/inference';
 import { Resend } from 'resend';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -143,19 +144,12 @@ if (isFetchImageMode) {
 	try {
 		const prompt = getDailyPrompt();
 		console.log(`Generating image for prompt: ${prompt}`);
-		const response = await fetchWithRetry(
-			'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
-			3,
-			{
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${HF_TOKEN}`,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ inputs: prompt }),
-			}
-		);
-		const buffer = Buffer.from(await response.arrayBuffer());
+		const hf = new HfInference(HF_TOKEN);
+		const blob = await hf.textToImage({
+			model: 'stabilityai/stable-diffusion-xl-base-1.0',
+			inputs: prompt,
+		});
+		const buffer = Buffer.from(await blob.arrayBuffer());
 		writeFileSync('daily.jpg', buffer);
 		console.log('Saved daily.jpg');
 	} catch (err) {
