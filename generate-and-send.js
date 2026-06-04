@@ -1,17 +1,20 @@
+import { writeFileSync } from 'node:fs';
 import { Resend } from 'resend';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 const SENDER_EMAIL = process.env.SENDER_EMAIL;
 
-if (!RESEND_API_KEY || !RESEND_AUDIENCE_ID || !SENDER_EMAIL) {
+const isFetchImageMode = process.argv[2] === '--fetch-image';
+
+if (!isFetchImageMode && (!RESEND_API_KEY || !RESEND_AUDIENCE_ID || !SENDER_EMAIL)) {
 	console.error(
 		"Missing required environment variables: RESEND_API_KEY, RESEND_AUDIENCE_ID, SENDER_EMAIL",
 	);
 	process.exit(1);
 }
 
-const resend = new Resend(RESEND_API_KEY);
+const resend = isFetchImageMode ? null : new Resend(RESEND_API_KEY);
 
 const PROMPTS = [
 	"A single Minion sitting cross-legged on a lily pad, soft watercolour painting style, muted pastels, misty Japanese pond at dawn, reflections in still water, meditative mood",
@@ -70,6 +73,25 @@ function getImageUrl() {
 	return `https://image.pollinations.ai/prompt/${encodeURIComponent(getDailyPrompt())}?seed=${nzDateSeed()}&nologo=true`;
 }
 
+async function fetchWithRetry(url, maxRetries = 3) {
+	let lastError;
+	for (let attempt = 0; attempt <= maxRetries; attempt++) {
+		if (attempt > 0) {
+			const delayMs = 1000 * 2 ** (attempt - 1);
+			console.warn(`Retry attempt ${attempt} after ${delayMs}ms...`);
+			await new Promise(resolve => setTimeout(resolve, delayMs));
+		}
+		const response = await fetch(url);
+		if (response.ok) return response;
+		if (response.status === 429 || response.status >= 500) {
+			lastError = new Error(`HTTP ${response.status}`);
+			continue;
+		}
+		throw new Error(`HTTP ${response.status} from ${url}`);
+	}
+	throw lastError;
+}
+
 async function getQuote() {
 	const response = await fetch('https://zenquotes.io/api/random');
 	if (!response.ok) throw new Error(`ZenQuotes error ${response.status}`);
@@ -77,10 +99,10 @@ async function getQuote() {
 	return { quote, author };
 }
 
-async function sendBroadcast(imageUrl, quote, author) {
+async function sendBroadcast(imageSrc, quote, author) {
 	const html = `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
-      <img src="${imageUrl}" alt="Daily minion" style="width: 80%; border-radius: 8px; display: block; margin: 0 auto;" />
+      <img src="${imageSrc}" alt="Daily minion" style="width: 80%; border-radius: 8px; display: block; margin: 0 auto;" />
       <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${quote}"</p>
       <p style="font-size: 14px; color: #888; margin: 0;">— ${author}</p>
     </div>
@@ -98,18 +120,32 @@ async function sendBroadcast(imageUrl, quote, author) {
 	return data;
 }
 
-try {
-	const imageUrl = getImageUrl();
-	console.log(`Image URL: ${imageUrl}`);
+if (isFetchImageMode) {
+	try {
+		const imageUrl = getImageUrl();
+		console.log(`Fetching image: ${imageUrl}`);
+		const response = await fetchWithRetry(imageUrl, 3);
+		const buffer = Buffer.from(await response.arrayBuffer());
+		writeFileSync('daily.jpg', buffer);
+		console.log('Saved daily.jpg');
+	} catch (err) {
+		console.error("Error fetching image:", err.message);
+		process.exit(1);
+	}
+} else {
+	try {
+		const imageSrc = process.env.DAILY_IMAGE_URL || getImageUrl();
+		console.log(`Image: ${imageSrc}`);
 
-	console.log("Fetching quote...");
-	const { quote, author } = await getQuote();
-	console.log(`Quote: "${quote}" — ${author}`);
+		console.log("Fetching quote...");
+		const { quote, author } = await getQuote();
+		console.log(`Quote: "${quote}" — ${author}`);
 
-	console.log("Sending broadcast...");
-	const result = await sendBroadcast(imageUrl, quote, author);
-	console.log(`Broadcast sent successfully (id: ${result.id})`);
-} catch (err) {
-	console.error("Error:", err.message);
-	process.exit(1);
+		console.log("Sending broadcast...");
+		const result = await sendBroadcast(imageSrc, quote, author);
+		console.log(`Broadcast sent successfully (id: ${result.id})`);
+	} catch (err) {
+		console.error("Error:", err.message);
+		process.exit(1);
+	}
 }
