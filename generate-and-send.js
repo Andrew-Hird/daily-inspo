@@ -144,7 +144,7 @@ if (isFetchImageMode) {
 		const prompt = getDailyPrompt();
 		console.log(`Generating image for prompt: ${prompt}`);
 		const response = await fetchWithRetry(
-			'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+			'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0',
 			3,
 			{
 				method: 'POST',
