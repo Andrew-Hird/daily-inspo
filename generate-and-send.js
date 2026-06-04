@@ -52,10 +52,6 @@ const PROMPTS = [
 const NZ_LOCALE = 'en-NZ';
 const NZ_TZ = 'Pacific/Auckland';
 
-function nzDateSeed() {
-	return new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).split('/').reverse().join('');
-}
-
 function nzDayOfYear() {
 	const now = new Date();
 	const nzFormatter = new Intl.DateTimeFormat(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -69,11 +65,7 @@ function getDailyPrompt() {
 	return PROMPTS[nzDayOfYear() % PROMPTS.length];
 }
 
-function getImageUrl() {
-	return `https://image.pollinations.ai/prompt/${encodeURIComponent(getDailyPrompt())}?seed=${nzDateSeed()}&nologo=true`;
-}
-
-async function fetchWithRetry(url, maxRetries = 3) {
+async function fetchWithRetry(url, maxRetries = 3, options = {}) {
 	let lastError;
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
 		if (attempt > 0) {
@@ -81,7 +73,7 @@ async function fetchWithRetry(url, maxRetries = 3) {
 			console.warn(`Retry attempt ${attempt} after ${delayMs}ms...`);
 			await new Promise(resolve => setTimeout(resolve, delayMs));
 		}
-		const response = await fetch(url);
+		const response = await fetch(url, options);
 		if (response.ok) return response;
 		if (response.status === 429 || response.status >= 500) {
 			lastError = new Error(`HTTP ${response.status}`);
@@ -108,10 +100,25 @@ async function sendBroadcast(imageSrc, quote, author) {
     </div>
   `;
 
+	const subject = `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`;
+	const testEmail = process.env.TEST_EMAIL;
+
+	if (testEmail) {
+		const { error } = await resend.emails.send({
+			from: SENDER_EMAIL,
+			to: testEmail,
+			subject: `[TEST] ${subject}`,
+			html,
+		});
+		if (error) throw new Error(`Resend error: ${error.message}`);
+		console.log(`Test email sent to ${testEmail}`);
+		return;
+	}
+
 	const { data, error } = await resend.broadcasts.create({
 		audienceId: RESEND_AUDIENCE_ID,
 		from: SENDER_EMAIL,
-		subject: `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`,
+		subject,
 		html,
 		send: true,
 	});
@@ -121,29 +128,46 @@ async function sendBroadcast(imageSrc, quote, author) {
 }
 
 if (isFetchImageMode) {
+	const HF_TOKEN = process.env.HF_TOKEN;
+	if (!HF_TOKEN) {
+		console.error("Missing required environment variable: HF_TOKEN");
+		process.exit(1);
+	}
 	try {
-		const imageUrl = getImageUrl();
-		console.log(`Fetching image: ${imageUrl}`);
-		const response = await fetchWithRetry(imageUrl, 3);
+		const prompt = getDailyPrompt();
+		console.log(`Generating image for prompt: ${prompt}`);
+		const response = await fetchWithRetry(
+			'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',
+			3,
+			{
+				method: 'POST',
+				headers: {
+					'Authorization': `Bearer ${HF_TOKEN}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ inputs: prompt }),
+			}
+		);
 		const buffer = Buffer.from(await response.arrayBuffer());
 		writeFileSync('daily.jpg', buffer);
 		console.log('Saved daily.jpg');
 	} catch (err) {
-		console.error("Error fetching image:", err.message);
+		console.error("Error generating image:", err.message);
 		process.exit(1);
 	}
 } else {
 	try {
-		const imageSrc = process.env.DAILY_IMAGE_URL || getImageUrl();
+		const imageSrc = process.env.DAILY_IMAGE_URL;
+		if (!imageSrc) throw new Error("Missing required environment variable: DAILY_IMAGE_URL");
+
 		console.log(`Image: ${imageSrc}`);
 
 		console.log("Fetching quote...");
 		const { quote, author } = await getQuote();
 		console.log(`Quote: "${quote}" — ${author}`);
 
-		console.log("Sending broadcast...");
-		const result = await sendBroadcast(imageSrc, quote, author);
-		console.log(`Broadcast sent successfully (id: ${result.id})`);
+		console.log("Sending email...");
+		await sendBroadcast(imageSrc, quote, author);
 	} catch (err) {
 		console.error("Error:", err.message);
 		process.exit(1);
