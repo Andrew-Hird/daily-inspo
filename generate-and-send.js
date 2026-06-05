@@ -146,9 +146,8 @@ if (isFetchImageMode) {
 		console.log(`Generating image for prompt: ${prompt}`);
 		const hf = new HfInference(HF_TOKEN);
 		const blob = await hf.textToImage({
-			model: 'stabilityai/stable-diffusion-xl-base-1.0',
+			model: 'black-forest-labs/FLUX.1-schnell',
 			inputs: prompt,
-			provider: 'hf-inference',
 		});
 		const buffer = Buffer.from(await blob.arrayBuffer());
 		writeFileSync('daily.jpg', buffer);
