@@ -63,7 +63,7 @@ function nzDayOfYear() {
 }
 
 function getDailyPrompt() {
-	return PROMPTS[nzDayOfYear() % PROMPTS.length];
+	return PROMPTS[nzDayOfYear() % PROMPTS.length] + ', no text, no words, no letters, no watermark';
 }
 
 async function fetchWithRetry(url, maxRetries = 3, options = {}) {
