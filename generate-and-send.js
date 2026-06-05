@@ -148,6 +148,7 @@ if (isFetchImageMode) {
 		const blob = await hf.textToImage({
 			model: 'stabilityai/stable-diffusion-xl-base-1.0',
 			inputs: prompt,
+			provider: 'hf-inference',
 		});
 		const buffer = Buffer.from(await blob.arrayBuffer());
 		writeFileSync('daily.jpg', buffer);
