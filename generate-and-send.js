@@ -1,6 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { HfInference } from '@huggingface/inference';
 import { Resend } from 'resend';
+import sharp from 'sharp';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
@@ -149,7 +150,11 @@ if (isFetchImageMode) {
 			model: 'black-forest-labs/FLUX.1-schnell',
 			inputs: prompt,
 		});
-		const buffer = Buffer.from(await blob.arrayBuffer());
+		const rawBuffer = Buffer.from(await blob.arrayBuffer());
+		const buffer = await sharp(rawBuffer)
+			.resize({ width: 1024, withoutEnlargement: true })
+			.jpeg({ quality: 82, mozjpeg: true })
+			.toBuffer();
 		writeFileSync('daily.jpg', buffer);
 		console.log('Saved daily.jpg');
 	} catch (err) {
