@@ -152,8 +152,8 @@ if (isFetchImageMode) {
 		});
 		const rawBuffer = Buffer.from(await blob.arrayBuffer());
 		const buffer = await sharp(rawBuffer)
-			.resize({ width: 1024, withoutEnlargement: true })
-			.jpeg({ quality: 82, mozjpeg: true })
+			.resize({ width: 600, withoutEnlargement: true })
+			.jpeg({ quality: 70, mozjpeg: true })
 			.toBuffer();
 		writeFileSync('daily.jpg', buffer);
 		console.log('Saved daily.jpg');
