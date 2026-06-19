@@ -103,7 +103,7 @@ async function getQuote() {
 async function sendBroadcast(imageSrc, quote, author) {
 	const html = `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
-      <img src="${imageSrc}" alt="Daily minion" style="width: 80%; border-radius: 8px; display: block; margin: 0 auto;" />
+      <img src="${imageSrc}" alt="Daily minion" width="600" style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;" />
       <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${quote}"</p>
       <p style="font-size: 14px; color: #888; margin: 0;">— ${author}</p>
     </div>
