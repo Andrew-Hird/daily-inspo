@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, existsSync } from 'node:fs';
 import { HfInference } from '@huggingface/inference';
 import { Resend } from 'resend';
 import sharp from 'sharp';
@@ -100,10 +100,11 @@ async function getQuote() {
 	return { quote, author };
 }
 
-async function sendBroadcast(imageSrc, quote, author) {
+async function sendBroadcast(imageSrc, quote, author, imageHeight = null) {
+	const heightAttr = imageHeight ? ` height="${imageHeight}"` : '';
 	const html = `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
-      <img src="${imageSrc}" alt="Daily minion" style="width: 80%; border-radius: 8px; display: block; margin: 0 auto;" />
+      <img src="${imageSrc}" alt="Daily minion" width="600"${heightAttr} style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;" />
       <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${quote}"</p>
       <p style="font-size: 14px; color: #888; margin: 0;">— ${author}</p>
     </div>
@@ -168,12 +169,18 @@ if (isFetchImageMode) {
 
 		console.log(`Image: ${imageSrc}`);
 
+		let imageHeight = null;
+		if (existsSync('daily.jpg')) {
+			const { height } = await sharp('daily.jpg').metadata();
+			imageHeight = height ?? null;
+		}
+
 		console.log("Fetching quote...");
 		const { quote, author } = await getQuote();
 		console.log(`Quote: "${quote}" — ${author}`);
 
 		console.log("Sending email...");
-		await sendBroadcast(imageSrc, quote, author);
+		await sendBroadcast(imageSrc, quote, author, imageHeight);
 	} catch (err) {
 		console.error("Error:", err.message);
 		process.exit(1);
