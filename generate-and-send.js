@@ -94,8 +94,7 @@ async function fetchWithRetry(url, maxRetries = 3, options = {}) {
 }
 
 async function getQuote() {
-	const response = await fetch('https://zenquotes.io/api/random');
-	if (!response.ok) throw new Error(`ZenQuotes error ${response.status}`);
+	const response = await fetchWithRetry('https://zenquotes.io/api/random');
 	const [{ q: quote, a: author }] = await response.json();
 	return { quote, author };
 }
