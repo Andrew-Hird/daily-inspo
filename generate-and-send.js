@@ -51,6 +51,8 @@ const PROMPTS = [
 	"A Minion dancing at a house party, risograph print style, deliberate colour misregistration, limited two-colour overlay (orange and teal), grainy ink texture, joyful loose linework",
 ];
 
+const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
+
 const NZ_LOCALE = 'en-NZ';
 const NZ_TZ = 'Pacific/Auckland';
 
@@ -64,7 +66,7 @@ function nzDayOfYear() {
 }
 
 function getDailyPrompt() {
-	return PROMPTS[nzDayOfYear() % PROMPTS.length];
+	return `${PROMPTS[nzDayOfYear() % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
 }
 
 async function fetchWithRetry(url, maxRetries = 3, options = {}) {
