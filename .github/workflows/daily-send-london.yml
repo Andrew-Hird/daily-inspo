@@ -1,0 +1,45 @@
+name: Daily Inspo — Send (London)
+
+# Sends the image and quote already committed by the NZ generate run, so both
+# regions receive identical content. Never generates or commits anything.
+
+on:
+  schedule:
+    # Fixed UTC, so the local hour drifts with DST: 8am BST, 7am GMT.
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: 'Send to this address only (skips broadcast)'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Resolve committed content SHA
+        id: sha
+        run: echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Send email (London)
+        run: node generate-and-send.js
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID_LONDON }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          EMAIL_LOCALE: en-GB
+          EMAIL_TZ: Europe/London
+          DAILY_IMAGE_URL: "https://raw.githubusercontent.com/andrew-hird/daily-inspo/${{ steps.sha.outputs.sha }}/daily.jpg"
+          TEST_EMAIL: ${{ inputs.test_email }}

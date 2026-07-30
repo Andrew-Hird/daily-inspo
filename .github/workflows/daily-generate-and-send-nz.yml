@@ -1,4 +1,4 @@
-name: Daily AI Image
+name: Daily Inspo — Generate & Send (NZ)
 
 on:
   schedule:
@@ -25,26 +25,28 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fetch daily image
+      - name: Generate today's image and quote
         run: node generate-and-send.js --fetch-image
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
 
-      - name: Commit image to repo
+      - name: Commit today's content to repo
         id: commit-image
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add daily.jpg
+          git add daily.jpg daily.json
           git commit -m "chore: update daily image" || true
           git push origin main
           echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Generate image and send email
+      - name: Send email (NZ)
         run: node generate-and-send.js
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
+          EMAIL_LOCALE: en-NZ
+          EMAIL_TZ: Pacific/Auckland
           DAILY_IMAGE_URL: "https://raw.githubusercontent.com/andrew-hird/daily-inspo/${{ steps.commit-image.outputs.sha }}/daily.jpg"
           TEST_EMAIL: ${{ inputs.test_email }}
