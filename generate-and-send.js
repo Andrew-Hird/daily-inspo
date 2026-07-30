@@ -1,4 +1,4 @@
-import { writeFileSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { HfInference } from '@huggingface/inference';
 import { Resend } from 'resend';
 import sharp from 'sharp';
@@ -53,13 +53,28 @@ const PROMPTS = [
 
 const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
 
-const NZ_LOCALE = 'en-NZ';
-const NZ_TZ = 'Pacific/Auckland';
+// The content day is always anchored to NZ, regardless of which region is being emailed:
+// it keys the prompt rotation and identifies the day's committed image and quote.
+// en-CA formats as YYYY-MM-DD, so the parsed field order is not locale-dependent.
+const CONTENT_LOCALE = 'en-CA';
+const CONTENT_TZ = 'Pacific/Auckland';
+const CONTENT_FILE = 'daily.json';
+
+// Per-region, used only for the subject line. Defaults to NZ.
+const EMAIL_LOCALE = process.env.EMAIL_LOCALE || 'en-NZ';
+const EMAIL_TZ = process.env.EMAIL_TZ || 'Pacific/Auckland';
+
+function nzDateKey() {
+	return new Intl.DateTimeFormat(CONTENT_LOCALE, {
+		timeZone: CONTENT_TZ,
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	}).format(new Date());
+}
 
 function nzDayOfYear() {
-	const now = new Date();
-	const nzFormatter = new Intl.DateTimeFormat(NZ_LOCALE, { timeZone: NZ_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
-	const [day, month, year] = nzFormatter.format(now).split('/').map(Number);
+	const [year, month, day] = nzDateKey().split('-').map(Number);
 	const startOfYear = new Date(Date.UTC(year, 0, 1));
 	const todayUtcMidnight = new Date(Date.UTC(year, month - 1, day));
 	return Math.floor((todayUtcMidnight - startOfYear) / 86_400_000) + 1;
@@ -67,6 +82,38 @@ function nzDayOfYear() {
 
 function getDailyPrompt() {
 	return `${PROMPTS[nzDayOfYear() % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
+}
+
+// Reads the image and quote committed by the generate run. Both regions send the same
+// content, so a send must never invent its own — if today's content is absent, fail.
+function readDailyContent() {
+	if (!existsSync(CONTENT_FILE)) {
+		throw new Error(`Missing ${CONTENT_FILE} — the generate run has not committed today's content.`);
+	}
+	const { date, quote, author } = JSON.parse(readFileSync(CONTENT_FILE, 'utf8'));
+	const today = nzDateKey();
+	if (date !== today) {
+		throw new Error(`Stale ${CONTENT_FILE} (found ${date}, expected ${today}) — the generate run likely failed.`);
+	}
+	if (!quote || !author) {
+		throw new Error(`Invalid ${CONTENT_FILE}: missing quote or author.`);
+	}
+	return { quote, author };
+}
+
+// The schedule fires at two UTC hours so that one of them is 8am local year-round;
+// the run at the wrong hour for the current DST offset skips instead of sending.
+function isWrongLocalHour() {
+	const wanted = process.env.SEND_HOUR_LOCAL;
+	if (!wanted) return false;
+	const hour = new Intl.DateTimeFormat('en-GB', {
+		timeZone: EMAIL_TZ,
+		hour: '2-digit',
+		hourCycle: 'h23',
+	}).format(new Date());
+	if (Number(hour) === Number(wanted)) return false;
+	console.log(`Skipping: local hour in ${EMAIL_TZ} is ${hour}, sending only at ${wanted}.`);
+	return true;
 }
 
 async function fetchWithRetry(url, maxRetries = 3, options = {}) {
@@ -111,7 +158,8 @@ async function sendBroadcast(imageSrc, quote, author, imageHeight = null) {
     </div>
   `;
 
-	const subject = `Good Morning — ${new Date().toLocaleDateString(NZ_LOCALE, { timeZone: NZ_TZ, weekday: "long", month: "long", day: "numeric" })}`;
+	const subject = `Good Morning — ${new Date().toLocaleDateString(EMAIL_LOCALE, { timeZone: EMAIL_TZ, weekday: "long", month: "long", day: "numeric" })}`;
+	console.log(`Subject: ${subject}`);
 	const testEmail = process.env.TEST_EMAIL;
 
 	if (testEmail) {
@@ -159,12 +207,20 @@ if (isFetchImageMode) {
 			.toBuffer();
 		writeFileSync('daily.jpg', buffer);
 		console.log('Saved daily.jpg');
+
+		console.log("Fetching quote...");
+		const { quote, author } = await getQuote();
+		const content = { date: nzDateKey(), quote, author };
+		writeFileSync(CONTENT_FILE, `${JSON.stringify(content, null, 2)}\n`);
+		console.log(`Saved ${CONTENT_FILE} for ${content.date}: "${quote}" — ${author}`);
 	} catch (err) {
-		console.error("Error generating image:", err.message, err.cause ? `(${err.cause.message})` : '');
+		console.error("Error generating daily content:", err.message, err.cause ? `(${err.cause.message})` : '');
 		process.exit(1);
 	}
 } else {
 	try {
+		if (isWrongLocalHour()) process.exit(0);
+
 		const imageSrc = process.env.DAILY_IMAGE_URL;
 		if (!imageSrc) throw new Error("Missing required environment variable: DAILY_IMAGE_URL");
 
@@ -176,11 +232,10 @@ if (isFetchImageMode) {
 			imageHeight = height ?? null;
 		}
 
-		console.log("Fetching quote...");
-		const { quote, author } = await getQuote();
+		const { quote, author } = readDailyContent();
 		console.log(`Quote: "${quote}" — ${author}`);
 
-		console.log("Sending email...");
+		console.log(`Sending email for ${EMAIL_TZ}...`);
 		await sendBroadcast(imageSrc, quote, author, imageHeight);
 	} catch (err) {
 		console.error("Error:", err.message);
