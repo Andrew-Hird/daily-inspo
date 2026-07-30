@@ -64,6 +64,12 @@ Go to **Actions**, pick either workflow, and **Run workflow** to send a test ema
 Note the London workflow cannot send until the NZ workflow has committed a `daily.json` at least
 once — before that it will correctly fail with a missing-content error.
 
+Test sends warn on stale content rather than failing, so a manual London dispatch works at any
+hour. Scheduled broadcasts keep the hard failure. This matters because the committed content is
+keyed to the NZ date, which rolls over around 11:00–12:00 UTC while the next generate run is not
+until 20:00 UTC — so for most of the London working day the newest available content is a day old
+by that key, even though nothing has gone wrong.
+
 ### Change the schedule
 
 Both crons are fixed UTC, so the local delivery hour drifts with DST:

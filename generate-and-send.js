@@ -6,6 +6,7 @@ import sharp from 'sharp';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 const SENDER_EMAIL = process.env.SENDER_EMAIL;
+const TEST_EMAIL = process.env.TEST_EMAIL;
 
 const isFetchImageMode = process.argv[2] === '--fetch-image';
 
@@ -86,14 +87,22 @@ function getDailyPrompt() {
 
 // Reads the image and quote committed by the generate run. Both regions send the same
 // content, so a send must never invent its own — if today's content is absent, fail.
-function readDailyContent() {
+//
+// The date check is relaxed for test sends. The committed content is keyed to the NZ date,
+// which rolls over ~8 hours before the next generate run, so between NZ midnight and 20:00
+// UTC it is legitimately stale — that window covers most of the London working day, and a
+// single-address test does not need protecting from a repeated quote the way a broadcast does.
+function readDailyContent({ allowStale = false } = {}) {
 	if (!existsSync(CONTENT_FILE)) {
 		throw new Error(`Missing ${CONTENT_FILE} — the generate run has not committed today's content.`);
 	}
 	const { date, quote, author } = JSON.parse(readFileSync(CONTENT_FILE, 'utf8'));
 	const today = nzDateKey();
 	if (date !== today) {
-		throw new Error(`Stale ${CONTENT_FILE} (found ${date}, expected ${today}) — the generate run likely failed.`);
+		if (!allowStale) {
+			throw new Error(`Stale ${CONTENT_FILE} (found ${date}, expected ${today}) — the generate run likely failed.`);
+		}
+		console.warn(`Warning: ${CONTENT_FILE} is for ${date}, not ${today} — sending it anyway because this is a test send.`);
 	}
 	if (!quote || !author) {
 		throw new Error(`Invalid ${CONTENT_FILE}: missing quote or author.`);
@@ -145,17 +154,16 @@ async function sendBroadcast(imageSrc, quote, author, imageHeight = null) {
 
 	const subject = `Good Morning — ${new Date().toLocaleDateString(EMAIL_LOCALE, { timeZone: EMAIL_TZ, weekday: "long", month: "long", day: "numeric" })}`;
 	console.log(`Subject: ${subject}`);
-	const testEmail = process.env.TEST_EMAIL;
 
-	if (testEmail) {
+	if (TEST_EMAIL) {
 		const { error } = await resend.emails.send({
 			from: SENDER_EMAIL,
-			to: testEmail,
+			to: TEST_EMAIL,
 			subject: `[TEST] ${subject}`,
 			html,
 		});
 		if (error) throw new Error(`Resend error: ${error.message}`);
-		console.log(`Test email sent to ${testEmail}`);
+		console.log(`Test email sent to ${TEST_EMAIL}`);
 		return;
 	}
 
@@ -215,7 +223,7 @@ if (isFetchImageMode) {
 			imageHeight = height ?? null;
 		}
 
-		const { quote, author } = readDailyContent();
+		const { quote, author } = readDailyContent({ allowStale: Boolean(TEST_EMAIL) });
 		console.log(`Quote: "${quote}" — ${author}`);
 
 		console.log(`Sending email for ${EMAIL_TZ}...`);
