@@ -60,19 +60,21 @@ The two audiences are independent, so anyone present in both will receive two em
 ### Trigger manually
 
 Go to **Actions**, pick either workflow, and **Run workflow** to send a test email immediately.
-Manual runs ignore the local-hour check, so they always send.
 
 Note the London workflow cannot send until the NZ workflow has committed a `daily.json` at least
 once — before that it will correctly fail with a missing-content error.
 
 ### Change the schedule
 
-The NZ cron in [`daily-generate-and-send-nz.yml`](.github/workflows/daily-generate-and-send-nz.yml) is `0 20 * * *`, which runs at 8:00 AM NZST (9:00 AM NZDT) — the hour drifts with DST.
+Both crons are fixed UTC, so the local delivery hour drifts with DST:
 
-The London workflow instead stays at 8am year-round: it has two cron entries (`0 7 * * *` for BST
-and `0 8 * * *` for GMT), and `SEND_HOUR_LOCAL: 8` makes the run at the wrong hour for the current
-offset exit without sending. To change that time, move both crons and update `SEND_HOUR_LOCAL` to
-match. Use [crontab.guru](https://crontab.guru) to adjust.
+| Workflow | Cron | Local time |
+|---|---|---|
+| [`daily-generate-and-send-nz.yml`](.github/workflows/daily-generate-and-send-nz.yml) | `0 20 * * *` | 8:00 AM NZST (9:00 AM NZDT) |
+| [`daily-send-london.yml`](.github/workflows/daily-send-london.yml) | `0 7 * * *` | 8:00 AM BST (7:00 AM GMT) |
+
+Use [crontab.guru](https://crontab.guru) to adjust either one. The London send must stay later in
+UTC than the NZ generate run, since it consumes the content that run commits.
 
 ## Local testing
 

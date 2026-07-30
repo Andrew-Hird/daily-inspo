@@ -101,21 +101,6 @@ function readDailyContent() {
 	return { quote, author };
 }
 
-// The schedule fires at two UTC hours so that one of them is 8am local year-round;
-// the run at the wrong hour for the current DST offset skips instead of sending.
-function isWrongLocalHour() {
-	const wanted = process.env.SEND_HOUR_LOCAL;
-	if (!wanted) return false;
-	const hour = new Intl.DateTimeFormat('en-GB', {
-		timeZone: EMAIL_TZ,
-		hour: '2-digit',
-		hourCycle: 'h23',
-	}).format(new Date());
-	if (Number(hour) === Number(wanted)) return false;
-	console.log(`Skipping: local hour in ${EMAIL_TZ} is ${hour}, sending only at ${wanted}.`);
-	return true;
-}
-
 async function fetchWithRetry(url, maxRetries = 3, options = {}) {
 	let lastError;
 	for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -219,8 +204,6 @@ if (isFetchImageMode) {
 	}
 } else {
 	try {
-		if (isWrongLocalHour()) process.exit(0);
-
 		const imageSrc = process.env.DAILY_IMAGE_URL;
 		if (!imageSrc) throw new Error("Missing required environment variable: DAILY_IMAGE_URL");
 

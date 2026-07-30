@@ -5,10 +5,8 @@ name: Daily Inspo — Send (London)
 
 on:
   schedule:
-    # Two slots so one is always 8am London; the run at the wrong hour for the
-    # current DST offset exits early via SEND_HOUR_LOCAL.
-    - cron: '0 7 * * *' # 8am BST
-    - cron: '0 8 * * *' # 8am GMT
+    # Fixed UTC, so the local hour drifts with DST: 8am BST, 7am GMT.
+    - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
       test_email:
@@ -45,5 +43,3 @@ jobs:
           EMAIL_TZ: Europe/London
           DAILY_IMAGE_URL: "https://raw.githubusercontent.com/andrew-hird/daily-inspo/${{ steps.sha.outputs.sha }}/daily.jpg"
           TEST_EMAIL: ${{ inputs.test_email }}
-          # Unset on manual runs, so a dispatched test always sends.
-          SEND_HOUR_LOCAL: ${{ github.event_name == 'schedule' && '8' || '' }}
