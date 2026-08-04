@@ -5,8 +5,10 @@ name: Daily Inspo — Send (London)
 
 on:
   schedule:
-    # Fixed UTC, so the local hour drifts with DST: 8am BST, 7am GMT.
-    - cron: '0 7 * * *'
+    # Targets 8am BST / 7am GMT — fixed UTC, so the local hour drifts with DST.
+    # Set 17 minutes early and off the top of the hour: GitHub queues scheduled
+    # runs and the delay is worst at :00, which was pushing this past 10am BST.
+    - cron: '43 6 * * *'
   workflow_dispatch:
     inputs:
       test_email:

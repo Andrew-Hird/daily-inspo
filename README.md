@@ -74,13 +74,25 @@ by that key, even though nothing has gone wrong.
 
 Both crons are fixed UTC, so the local delivery hour drifts with DST:
 
-| Workflow | Cron | Local time |
-|---|---|---|
-| [`daily-generate-and-send-nz.yml`](.github/workflows/daily-generate-and-send-nz.yml) | `0 20 * * *` | 8:00 AM NZST (9:00 AM NZDT) |
-| [`daily-send-london.yml`](.github/workflows/daily-send-london.yml) | `0 7 * * *` | 8:00 AM BST (7:00 AM GMT) |
+| Workflow | Cron | Nominal | Target arrival |
+|---|---|---|---|
+| [`daily-generate-and-send-nz.yml`](.github/workflows/daily-generate-and-send-nz.yml) | `43 19 * * *` | 7:43 AM NZST | 8:00 AM NZST (9:00 AM NZDT) |
+| [`daily-send-london.yml`](.github/workflows/daily-send-london.yml) | `43 6 * * *` | 7:43 AM BST | 8:00 AM BST (7:00 AM GMT) |
 
-Use [crontab.guru](https://crontab.guru) to adjust either one. The London send must stay later in
-UTC than the NZ generate run, since it consumes the content that run commits.
+Both are set 17 minutes early and deliberately off the top of the hour. GitHub queues `schedule`
+events and delays them under load, and `:00` is the worst slot because that is when most workflows
+are scheduled — at `0 7 * * *` the London send was consistently starting between 09:00 and 10:40
+UTC, arriving mid-morning instead of 8am. Queue delay only ever pushes a run later, never earlier,
+so aiming slightly early lands closer to the target. These are targets, not guarantees: GitHub's
+scheduler is best-effort.
+
+Use [crontab.guru](https://crontab.guru) to adjust either one, but note two constraints:
+
+- The London send must stay later in UTC than the NZ generate run, since it consumes the content
+  that run commits.
+- It must also stay before ~11:00 UTC. The committed content is keyed to the NZ date, which rolls
+  over then; a London run starting after that point would see the content as stale and skip the
+  broadcast.
 
 ## Local testing
 

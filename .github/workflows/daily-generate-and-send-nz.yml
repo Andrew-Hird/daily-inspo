@@ -2,7 +2,9 @@ name: Daily Inspo — Generate & Send (NZ)
 
 on:
   schedule:
-    - cron: '0 20 * * *'
+    # Targets 8am NZST / 9am NZDT, set early and off the top of the hour to
+    # absorb GitHub's scheduled-run queue delay. See the London workflow.
+    - cron: '43 19 * * *'
   workflow_dispatch:
     inputs:
       test_email:
