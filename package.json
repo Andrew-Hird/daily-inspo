@@ -9,5 +9,13 @@
     "@huggingface/inference": "^4.13.18",
     "resend": "latest",
     "sharp": "^0.34.0"
+  },
+  "scripts": {
+    "dev": "wrangler dev --test-scheduled",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.126.0"
   }
 }

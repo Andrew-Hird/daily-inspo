@@ -1,0 +1,51 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "daily-inspo",
+	"main": "src/worker.js",
+	"compatibility_date": "2026-08-25",
+	// Images are served off the R2 bucket's own domain, so the only HTTP surface
+	// here is /health and /admin. Those are needed for cutover verification; once
+	// live, set this to false to remove the public surface entirely. Cron Triggers
+	// are a separate invocation path and keep firing with no route at all.
+	"workers_dev": true,
+	// Off: otherwise every deployment version also gets its own public URL.
+	"preview_urls": false,
+	"observability": { "enabled": true },
+
+	// Hourly. Each region's local hour is derived at runtime, so DST is handled in
+	// code rather than baked into a UTC cron — which is what makes London 8am
+	// year-round instead of 7am every winter. A missed or late hour is retried by
+	// the next one.
+	//
+	// Ships EMPTY so the worker can be deployed and exercised while GitHub Actions
+	// is still authoritative. Set to ["0 * * * *"] at cutover. Note that an empty
+	// array is what disables cron — removing this block does not.
+	"triggers": { "crons": [] },
+
+	// KV holds the day's quote record and the per-region "already sent" flags —
+	// the latter needs KV's per-key TTL, which R2 has no equivalent for.
+	"kv_namespaces": [
+		{ "binding": "INSPO", "id": "6c566a128200450c9b07fe0bf4ca2746" }
+	],
+
+	// The day's image. Served to mail clients directly off this bucket's public
+	// custom domain — the Worker is not in that path, so image opens cost no
+	// Worker request, no CPU, and no egress.
+	"r2_buckets": [
+		{ "binding": "BUCKET", "bucket_name": "daily-inspo" }
+	],
+	"ai": { "binding": "AI" },
+	"images": { "binding": "IMAGES" },
+
+	"vars": {
+		// "off" | "test" | "live". Ships as "test": every send, cron-triggered or
+		// manual, goes only to TEST_EMAIL and never touches an audience. Flipped to
+		// "live" at cutover, and that flip is the only thing separating the two.
+		"SEND_MODE": "test",
+		// Public custom domain of the R2 bucket. This is what every emailed
+		// <img src> points at, so it must be set before going live.
+		"IMAGE_BASE_URL": "https://goodmorning.rav4.cool",
+		// Last resort only: lets London generate its own content if NZ never sent.
+		"ALLOW_LONDON_GENERATE": "false"
+	}
+}

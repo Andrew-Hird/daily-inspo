@@ -1,0 +1,11 @@
+# Copy to .dev.vars for `wrangler dev`. .dev.vars is gitignored.
+# --remote uses live KV, Workers AI and the real Resend key, so keep SEND_MODE=test.
+SEND_MODE = "test"
+TEST_EMAIL = "you@example.com"
+IMAGE_BASE_URL = "https://img.<your-domain>"
+RESEND_API_KEY = ""
+SENDER_EMAIL = ""
+RESEND_AUDIENCE_ID_NZ = ""
+RESEND_AUDIENCE_ID_LONDON = ""
+HEALTHCHECK_PING_KEY = ""
+ADMIN_TOKEN = "local-dev-token"
