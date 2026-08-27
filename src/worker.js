@@ -9,9 +9,11 @@ const GENERATE_HOUR = 7;
 const SEND_HOURS = [8, 9, 10];
 const LAST_SEND_HOUR = SEND_HOURS[SEND_HOURS.length - 1];
 
-// Pure: no env, no I/O. Generating an hour before the first send gives KV a full
-// hour to propagate the image globally before any mail client fetches it, and
-// gives a failed generate a free retry on the send path.
+// Pure: no env, no I/O. Generating an hour before the first send buys a free
+// retry: if 07:00 fails, the 08:00 send regenerates before anyone notices. That
+// gap originally also covered KV's eventual consistency, back when the image
+// lived in KV — R2 is strongly consistent, so the retry hour is the whole
+// justification now.
 export function plan(now) {
 	const actions = [];
 	for (const region of REGIONS) {
@@ -162,8 +164,9 @@ async function admin(url, env, ctx) {
 			return Response.json({ accepted: 'test', region: region.key, date, subject: `[TEST] ${subjectFor(region, now)}` }, { status: 202 });
 		}
 
-		// Answers the one thing the docs do not: whether the Images binding works
-		// on a zone-less workers.dev worker.
+		// Reports what the Images binding actually did to a stored object. Kept
+		// because shrink() falls back to the unresized image on failure, by
+		// design — so a broken transform is silent, and this is how you check.
 		case 'probe': {
 			if (!env.IMAGES) return Response.json({ images: false, reason: 'No IMAGES binding.' });
 			const object = await env.BUCKET.get(`${date}.jpg`);
