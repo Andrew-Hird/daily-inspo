@@ -17,10 +17,9 @@
 	// year-round instead of 7am every winter. A missed or late hour is retried by
 	// the next one.
 	//
-	// Ships EMPTY so the worker can be deployed and exercised while GitHub Actions
-	// is still authoritative. Set to ["0 * * * *"] at cutover. Note that an empty
-	// array is what disables cron — removing this block does not.
-	"triggers": { "crons": [] },
+	// Live as of the 2026-08-27 cutover. To roll back, set this to [] — an empty
+	// array is what disables cron; removing the block does not.
+	"triggers": { "crons": ["0 * * * *"] },
 
 	// KV holds the day's quote record and the per-region "already sent" flags —
 	// the latter needs KV's per-key TTL, which R2 has no equivalent for.
@@ -38,10 +37,11 @@
 	"images": { "binding": "IMAGES" },
 
 	"vars": {
-		// "off" | "test" | "live". Ships as "test": every send, cron-triggered or
-		// manual, goes only to TEST_EMAIL and never touches an audience. Flipped to
-		// "live" at cutover, and that flip is the only thing separating the two.
-		"SEND_MODE": "test",
+		// "off" | "test" | "live". Live as of the 2026-08-27 cutover. Setting this
+		// back to "test" redirects every send — cron-triggered or manual — to
+		// TEST_EMAIL alone, which is the fastest way to stop mail going out
+		// without touching the schedule.
+		"SEND_MODE": "live",
 		// Public custom domain of the R2 bucket. This is what every emailed
 		// <img src> points at, so it must be set before going live.
 		"IMAGE_BASE_URL": "https://goodmorning.rav4.cool",
