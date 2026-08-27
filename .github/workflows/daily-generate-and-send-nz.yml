@@ -1,8 +1,11 @@
 name: Daily Inspo — Generate & Send (NZ)
 
 on:
-  schedule:
-    - cron: '0 20 * * *'
+  # Disabled at Cloudflare Worker cutover, 2026-08-27. The Worker runs an
+  # hourly cron and derives each region's local hour at runtime. Kept here,
+  # with workflow_dispatch live, as the rollback lever: uncomment to restore.
+  # schedule:
+  #   - cron: '0 20 * * *'
   workflow_dispatch:
     inputs:
       test_email:

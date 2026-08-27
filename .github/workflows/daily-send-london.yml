@@ -4,9 +4,12 @@ name: Daily Inspo — Send (London)
 # regions receive identical content. Never generates or commits anything.
 
 on:
-  schedule:
-    # Fixed UTC, so the local hour drifts with DST: 8am BST, 7am GMT.
-    - cron: '0 7 * * *'
+  # Disabled at Cloudflare Worker cutover, 2026-08-27. The Worker runs an
+  # hourly cron and derives each region's local hour at runtime. Kept here,
+  # with workflow_dispatch live, as the rollback lever: uncomment to restore.
+  # schedule:
+  #   # Fixed UTC, so the local hour drifts with DST: 8am BST, 7am GMT.
+  #   - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
       test_email:
