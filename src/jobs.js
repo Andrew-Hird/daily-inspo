@@ -221,10 +221,11 @@ async function sendBroadcast(region, content, now, env) {
 			// next hour retries a send that already went out.
 			'Idempotency-Key': `inspo-${region.key}-${content.date}`,
 		},
-		// Audiences were renamed to Segments; audience_id is the deprecated alias
-		// and the official SDK still sends both, so we do too.
+		// Audiences were renamed to Segments, but the two fields are mutually
+		// exclusive: sending both is a fatal 422 ("Either `segment_id` or
+		// `audience_id` may be provided, but not both"). RESEND_AUDIENCE_ID_* holds
+		// ids from Resend → Audiences, so audience_id is the one that matches them.
 		body: JSON.stringify({
-			segment_id: audienceId,
 			audience_id: audienceId,
 			from: env.SENDER_EMAIL,
 			subject,
