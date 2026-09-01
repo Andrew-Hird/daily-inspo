@@ -42,23 +42,28 @@ export function getDailyPrompt(now) {
 	return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
 }
 
-export async function getQuote() {
-	// A rate-limited ZenQuotes response is a structurally valid quote array
-	// attributed to zenquotes.io, so an ok status is not enough to trust the
-	// payload — without this guard "Too many requests" gets emailed as the quote.
-	// The limit is 5 requests per 30s per IP and Workers egress from shared
-	// Cloudflare addresses, so waiting out the window matters more here than it
-	// did on a GitHub runner.
-	for (let attempt = 0; attempt < 3; attempt++) {
-		if (attempt > 0) await new Promise(resolve => setTimeout(resolve, 30_000));
-		const response = await fetchWithRetry('https://zenquotes.io/api/random');
-		const [first] = await response.json();
-		const quote = first?.q;
-		const author = first?.a;
-		if (quote && author && author !== 'zenquotes.io') return { quote, author };
-		console.warn('ZenQuotes returned a rate-limit placeholder, waiting out the window...');
+export async function getQuote(env) {
+	const result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
+		messages: [
+			{
+				role: 'user',
+				content: `Generate a unique, uplifting inspirational quote. 
+The quote should:
+- Be concise (ideally 1-2 sentences, max 20 words)
+- Inspire positivity and motivation
+- Be original and thoughtful
+- Stand alone without needing an author attribution
+
+Output only the quote text, nothing else.`,
+			},
+		],
+		max_tokens: 100,
+	});
+	const quote = (result.response || '').trim();
+	if (!quote) {
+		throw new Error('Cloudflare AI returned empty quote.');
 	}
-	throw new Error('ZenQuotes rate-limited on every attempt.');
+	return { quote };
 }
 
 function decodeBase64(encoded) {
@@ -156,7 +161,7 @@ export async function ensureContent(date, now, env) {
 	}
 
 	console.log('Fetching quote...');
-	const { quote, author } = await getQuote();
+	const { quote, author } = await getQuote(env);
 
 	// content: is the readiness marker and is written last, so a failed quote
 	// fetch never leaves a half-ready day that the send path would trust.
@@ -181,11 +186,12 @@ export function readContent(date, env) {
 export function renderEmail(content, env) {
 	const imageSrc = imageUrl(content.date, env);
 	const heightAttr = content.height ? ` height="${content.height}"` : '';
+	const authorLine = content.author ? `<p style="font-size: 14px; color: #888; margin: 0;">— ${content.author}</p>` : '';
 	return `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
       <img src="${imageSrc}" alt="Daily minion" width="600"${heightAttr} style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;" />
       <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${content.quote}"</p>
-      <p style="font-size: 14px; color: #888; margin: 0;">— ${content.author}</p>
+      ${authorLine}
     </div>
   `;
 }

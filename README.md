@@ -122,7 +122,7 @@ The Worker in `src/` replaces both workflows with a single hourly cron that
 decides what to do from each region's *local* hour. **Until cutover (step 4
 below) the GitHub workflows are still authoritative and the Worker is dark.**
 
-Three things change:
+Four things change:
 
 - **DST drift is fixed.** London currently gets 8am in summer and 7am in winter,
   because `daily-send-london.yml` uses a fixed UTC cron. The Worker computes the
@@ -133,15 +133,17 @@ Three things change:
   directly off that bucket's public custom domain as `<nz-date>.jpg`, instead of
   a SHA-pinned `raw.githubusercontent.com` URL. The Worker is not in that path,
   so image opens cost no Worker request, no CPU and no egress.
+- **Cloudflare AI for quotes.** Quotes are generated via Cloudflare Workers AI (Llama 3.2) instead of external ZenQuotes API.
+  No more rate-limiting issues, instant generation, no external dependencies.
 
 ## Layout
 
 | File | Role |
 |---|---|
 | `src/worker.js` | Decides *when*: `plan()`, the cron handler, admin routes |
-| `src/jobs.js` | Does *what*: generate, quote, render, send, healthcheck pings |
+| `src/jobs.js` | Does *what*: generate images and quotes (Cloudflare AI), render, send, healthcheck pings |
 | `src/time.js` | Hoisted `Intl` formatters, region table, NZ date helpers |
-| `src/prompts.js` | The 30 prompts, unchanged |
+| `src/prompts.js` | Image prompts (30 daily rotations) and quote generation prompt |
 
 ## SEND_MODE — a test run can only ever reach you
 
@@ -185,8 +187,8 @@ for s in RESEND_API_KEY SENDER_EMAIL RESEND_AUDIENCE_ID_NZ RESEND_AUDIENCE_ID_LO
 ```
 
 `RESEND_AUDIENCE_ID_NZ` is the existing `RESEND_AUDIENCE_ID`. `ADMIN_TOKEN`:
-`openssl rand -hex 32`. `HF_TOKEN` is no longer needed — image generation uses
-the Workers AI binding.
+`openssl rand -hex 32`. `HF_TOKEN` is no longer needed — both image and quote generation use
+the Workers AI binding (Flux for images, Llama 3.2 for quotes).
 
 healthchecks.io: the worker pings with `?create=1`, so three checks create
 themselves on first ping — `inspo-generate`, `inspo-send-nz`, `inspo-send-london`. Set each to period 1 day,
