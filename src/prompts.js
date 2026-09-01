@@ -32,3 +32,12 @@ export const PROMPTS = [
 ];
 
 export const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
+
+export const QUOTE_GENERATION_PROMPT = `Generate a unique, uplifting inspirational quote. 
+The quote should:
+- Be concise (ideally 1-2 sentences, max 20 words)
+- Inspire positivity and motivation
+- Be original and thoughtful
+- Stand alone without needing an author attribution
+
+Output only the quote text, nothing else.`;
