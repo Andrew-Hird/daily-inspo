@@ -161,13 +161,13 @@ export async function ensureContent(date, now, env) {
 	}
 
 	console.log('Fetching quote...');
-	const { quote, author } = await getQuote(env);
+	const { quote } = await getQuote(env);
 
 	// content: is the readiness marker and is written last, so a failed quote
 	// fetch never leaves a half-ready day that the send path would trust.
-	const content = { date, quote, author, contentType: meta.contentType, width: meta.width, height: meta.height };
+	const content = { date, quote, contentType: meta.contentType, width: meta.width, height: meta.height };
 	await env.INSPO.put(`content:${date}`, JSON.stringify(content));
-	console.log(`Stored content:${date}: "${quote}" — ${author}`);
+	console.log(`Stored content:${date}: "${quote}"`);
 	return content;
 }
 
@@ -186,12 +186,10 @@ export function readContent(date, env) {
 export function renderEmail(content, env) {
 	const imageSrc = imageUrl(content.date, env);
 	const heightAttr = content.height ? ` height="${content.height}"` : '';
-	const authorLine = content.author ? `<p style="font-size: 14px; color: #888; margin: 0;">— ${content.author}</p>` : '';
 	return `
     <div style="font-family: sans-serif; max-width: 700px; margin: 0 auto;">
       <img src="${imageSrc}" alt="Daily minion" width="600"${heightAttr} style="max-width: 100%; height: auto; border-radius: 8px; display: block; margin: 0 auto;" />
       <p style="font-size: 20px; color: #333; margin: 24px 0 8px;">"${content.quote}"</p>
-      ${authorLine}
     </div>
   `;
 }
