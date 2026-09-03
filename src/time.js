@@ -15,6 +15,14 @@ const nzDateFormat = new Intl.DateTimeFormat(CONTENT_LOCALE, {
 	day: '2-digit',
 });
 
+const nzLongDateFormat = new Intl.DateTimeFormat('en-NZ', {
+	timeZone: CONTENT_TZ,
+	weekday: 'long',
+	day: 'numeric',
+	month: 'long',
+	year: 'numeric',
+});
+
 // hourCycle h23 rather than hour12:false — the latter renders midnight as "24"
 // under some locales, which would silently break the hour comparisons.
 const hourFormat = timeZone => new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', hourCycle: 'h23' });
@@ -43,6 +51,19 @@ export const NZ = REGIONS.find(region => region.generates);
 
 export function nzDateKey(now) {
 	return nzDateFormat.format(now);
+}
+
+export function nzLongDate(now) {
+	return nzLongDateFormat.format(now);
+}
+
+// Meteorological Southern Hemisphere seasons, from the NZ calendar month.
+export function nzSeason(now) {
+	const month = Number(nzDateKey(now).slice(5, 7));
+	if (month >= 9 && month <= 11) return 'spring';
+	if (month === 12 || month <= 2) return 'summer';
+	if (month >= 3 && month <= 5) return 'autumn';
+	return 'winter';
 }
 
 export function nzDayOfYear(now) {
