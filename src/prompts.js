@@ -33,11 +33,37 @@ export const PROMPTS = [
 
 export const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
 
-export const QUOTE_GENERATION_PROMPT = `Generate a unique, uplifting inspirational quote. 
-The quote should:
-- Be concise (ideally 1-2 sentences, max 20 words)
-- Inspire positivity and motivation
-- Be original and thoughtful
-- Stand alone without needing an author attribution
-
-Output only the quote text, nothing else.`;
+// Rotated daily so Llama 3.2 3B does not collapse onto the same garden/dawn
+// metaphors when asked for a generic "inspirational quote".
+export const QUOTE_LENSES = [
+	'finishing a small, unglamorous task you have been avoiding',
+	'asking for help without treating it as failure',
+	'being a decent friend on an ordinary Tuesday',
+	'starting again after a messy first attempt',
+	'rest as something you earned, not something you must justify',
+	'curiosity about a skill you are still bad at',
+	'keeping a promise nobody else is watching',
+	'laughing at yourself without putting yourself down',
+	'doing the next honest thing, not the perfect thing',
+	'noticing someone who usually goes unseen',
+	'leaving work on time and meaning it',
+	'trying again after you were sure you were done',
+	'saying the kind thing while it still feels awkward',
+	'making something with your hands, however clumsy',
+	'choosing patience with a person who is slower than you',
+	'walking into a room where you do not yet belong',
+	'protecting an hour of attention from your phone',
+	'admitting you were wrong and moving on',
+	'showing up for a habit on a day with no mood for it',
+	'giving credit away instead of keeping it',
+	'being brave in a conversation, not a battlefield',
+	'cooking a proper meal when takeaway would be easier',
+	'keeping going when the audience is only you',
+	'making space for someone else to shine',
+	'learning the name of a neighbour',
+	'choosing the kinder interpretation of a terse message',
+	'putting the tool down when the work is good enough',
+	'staying with a hard page of a book',
+	'taking the first step of a trip you keep postponing',
+	'being quietly useful without announcing it',
+];

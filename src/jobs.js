@@ -1,5 +1,5 @@
-import { PROMPTS, MINION_DESCRIPTOR } from './prompts.js';
-import { NZ, nzDayOfYear, subjectFor } from './time.js';
+import { PROMPTS, MINION_DESCRIPTOR, QUOTE_LENSES } from './prompts.js';
+import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 
 const RESEND_API = 'https://api.resend.com';
 const HEALTHCHECK_API = 'https://hc-ping.com';
@@ -42,22 +42,37 @@ export function getDailyPrompt(now) {
 	return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
 }
 
-export async function getQuote(env) {
+export function getDailyQuotePrompt(now) {
+	const lens = QUOTE_LENSES[nzDayOfYear(now) % QUOTE_LENSES.length];
+	return `Write one original uplifting quote for ${nzLongDate(now)} in New Zealand (${nzSeason(now)} in the Southern Hemisphere).
+Today's angle: ${lens}.
+
+Rules:
+- One sentence, max 20 words, concrete rather than poetic
+- Sound like a person, not a poster
+- If the season or weather comes up, it is ${nzSeason(now)} here — not the Northern Hemisphere calendar
+- Do not use these images: roots, seeds, soil, gardens, dawn, morning light, canvases, inner light, inner fire, unshakeable anything
+- No "believe in yourself", "you are enough", or "the journey" phrasing
+- Stand alone — no author, no quotation marks, no preamble
+- Do not mention New Zealand, Aotearoa, or the hemisphere unless the angle requires it
+
+Output only the quote text.`;
+}
+
+export async function getQuote(env, now = new Date()) {
 	const result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
 		messages: [
 			{
+				role: 'system',
+				content: 'You write short original quotes. You vary your imagery and never fall back on stock inspirational metaphors.',
+			},
+			{
 				role: 'user',
-				content: `Generate a unique, uplifting inspirational quote. 
-The quote should:
-- Be concise (ideally 1-2 sentences, max 20 words)
-- Inspire positivity and motivation
-- Be original and thoughtful
-- Stand alone without needing an author attribution
-
-Output only the quote text, nothing else.`,
+				content: getDailyQuotePrompt(now),
 			},
 		],
 		max_tokens: 100,
+		temperature: 0.95,
 	});
 	const quote = (result.response || '').trim();
 	if (!quote) {
@@ -161,7 +176,7 @@ export async function ensureContent(date, now, env) {
 	}
 
 	console.log('Fetching quote...');
-	const { quote } = await getQuote(env);
+	const { quote } = await getQuote(env, now);
 
 	// content: is the readiness marker and is written last, so a failed quote
 	// fetch never leaves a half-ready day that the send path would trust.
