@@ -3,7 +3,11 @@ import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 
 const RESEND_API = 'https://api.resend.com';
 const HEALTHCHECK_API = 'https://hc-ping.com';
-const IMAGE_MODEL = '@cf/lykon/dreamshaper-8-lcm';
+const IMAGE_MODEL = '@cf/bytedance/stable-diffusion-xl-lightning';
+const IMAGE_ATTEMPTS = 3;
+// A real 512x512 JPEG usually lands well above this; the blank output we saw
+// was ~1KB. Small files are near-certainly blank/near-black.
+const MIN_IMAGE_BYTES = 8 * 1024;
 const SENT_TTL_SECONDS = 604_800;
 // Objects are public and served straight off the bucket's custom domain, so the
 // key IS the public path. A date key gives each day a distinct immutable URL,
@@ -130,9 +134,13 @@ export async function shrink(bytes, env) {
 }
 
 export async function generateImage(prompt, env) {
-	const result = await env.AI.run(IMAGE_MODEL, { prompt });
-	const bytes = new Uint8Array(await new Response(result).arrayBuffer());
-	return { bytes, ...imageInfo(bytes) };
+	for (let attempt = 1; attempt <= IMAGE_ATTEMPTS; attempt++) {
+		const result = await env.AI.run(IMAGE_MODEL, { prompt });
+		const bytes = await shrink(new Uint8Array(await new Response(result).arrayBuffer()), env);
+		if (bytes.length >= MIN_IMAGE_BYTES) return { bytes, ...imageInfo(bytes) };
+		console.warn(`Blank/suspicious image on attempt ${attempt} (${bytes.length} bytes) — regenerating.`);
+	}
+	throw new Error(`No usable image after ${IMAGE_ATTEMPTS} attempts.`);
 }
 
 export async function ensureContent(date, now, env) {
