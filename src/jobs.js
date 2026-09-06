@@ -3,7 +3,7 @@ import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 
 const RESEND_API = 'https://api.resend.com';
 const HEALTHCHECK_API = 'https://hc-ping.com';
-const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
+const IMAGE_MODEL = '@cf/lykon/dreamshaper-8-lcm';
 const SENT_TTL_SECONDS = 604_800;
 // Objects are public and served straight off the bucket's custom domain, so the
 // key IS the public path. A date key gives each day a distinct immutable URL,
@@ -81,14 +81,6 @@ export async function getQuote(env, now = new Date()) {
 	return { quote };
 }
 
-function decodeBase64(encoded) {
-	if (typeof Uint8Array.fromBase64 === 'function') return Uint8Array.fromBase64(encoded);
-	const binary = atob(encoded);
-	const bytes = new Uint8Array(binary.length);
-	for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-	return bytes;
-}
-
 // Replaces sharp().metadata(). Reads dimensions straight out of the container
 // header so the email's height attribute and the served Content-Type agree even
 // if the model starts returning a different format.
@@ -139,7 +131,7 @@ export async function shrink(bytes, env) {
 
 export async function generateImage(prompt, env) {
 	const result = await env.AI.run(IMAGE_MODEL, { prompt });
-	const bytes = await shrink(decodeBase64(result.image), env);
+	const bytes = new Uint8Array(await new Response(result).arrayBuffer());
 	return { bytes, ...imageInfo(bytes) };
 }
 
