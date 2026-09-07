@@ -53,12 +53,17 @@ Today's angle: ${lens}.
 
 Rules:
 - One sentence, max 20 words, concrete rather than poetic
+- Write it as a plain statement, observation, or piece of advice — NOT a described scene or moment. Do not narrate an action (e.g. "you shut down your laptop", "you shut the door behind you")
+- No sensory scene-setting: no describing light, weather, sounds, or physical sensations as part of a moment
 - Sound like a person, not a poster
 - If the season or weather comes up, it is ${nzSeason(now)} here — not the Northern Hemisphere calendar
 - Do not use these images: roots, seeds, soil, gardens, dawn, morning light, canvases, inner light, inner fire, unshakeable anything
 - No "believe in yourself", "you are enough", or "the journey" phrasing
 - Stand alone — no author, no quotation marks, no preamble
-- Do not mention New Zealand, Aotearoa, or the hemisphere unless the angle requires it
+- Do not mention New Zealand, Aotearoa, any specific city or town, or the hemisphere unless the angle requires it
+
+Bad example (too much scene-setting, reads like fiction): "With a satisfied click, you shut down your laptop, letting the warmth of the evening envelop your workday's weary edges."
+Good example (plain, concrete, stands alone): "Leaving on time is not laziness, it is proof you trust tomorrow to hold the rest."
 
 Output only the quote text.`;
 }
