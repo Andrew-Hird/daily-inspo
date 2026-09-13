@@ -43,7 +43,9 @@ export async function fetchWithRetry(url, maxRetries = 3, options = {}) {
 }
 
 export function getDailyPrompt(now) {
-	return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
+	// MINION_DESCRIPTOR is temporarily disabled (trial run without it). To restore, uncomment:
+	// return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
+	return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}.`;
 }
 
 export function getDailyQuotePrompt(now) {
