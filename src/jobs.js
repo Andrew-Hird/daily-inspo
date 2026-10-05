@@ -3,7 +3,7 @@ import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 
 const RESEND_API = 'https://api.resend.com';
 const HEALTHCHECK_API = 'https://hc-ping.com';
-const IMAGE_MODEL = '@cf/lykon/dreamshaper-8-lcm';
+const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
 const IMAGE_ATTEMPTS = 3;
 // A real 512x512 JPEG usually lands well above this; the blank output we saw
 // was ~1KB. Small files are near-certainly blank/near-black.
