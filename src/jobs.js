@@ -4,8 +4,11 @@ import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 const RESEND_API = 'https://api.resend.com';
 const HEALTHCHECK_API = 'https://hc-ping.com';
 const IMAGE_MODEL = '@cf/black-forest-labs/flux-1-schnell';
+// flux-1-schnell is distilled for few steps: default 4, documented max 8.
+// More steps cost neurons and latency without improving the image.
+const IMAGE_STEPS = 4;
 const IMAGE_ATTEMPTS = 3;
-// A real 512x512 JPEG usually lands well above this; the blank output we saw
+// A real JPEG usually lands well above this; the blank output we saw
 // was ~1KB. Small files are near-certainly blank/near-black.
 const MIN_IMAGE_BYTES = 8 * 1024;
 const SENT_TTL_SECONDS = 604_800;
@@ -140,10 +143,29 @@ export async function shrink(bytes, env) {
 	}
 }
 
+// flux-1-schnell returns { image: <base64 string> }, not image bytes. Passing
+// that object to `new Response(result)` stringifies it to "[object Object]"
+// (15 bytes), which the size check then reads as a blank image on every attempt.
+// Returns null when the output has no usable image field so the caller can
+// treat it as a failed attempt and retry.
+export function decodeImage(result) {
+	if (typeof result?.image !== 'string' || !result.image) return null;
+	const binary = atob(result.image);
+	const bytes = new Uint8Array(binary.length);
+	for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+	return bytes;
+}
+
 export async function generateImage(prompt, env) {
 	for (let attempt = 1; attempt <= IMAGE_ATTEMPTS; attempt++) {
-		const result = await env.AI.run(IMAGE_MODEL, { prompt });
-		const bytes = await shrink(new Uint8Array(await new Response(result).arrayBuffer()), env);
+		const result = await env.AI.run(IMAGE_MODEL, { prompt, steps: IMAGE_STEPS });
+		const raw = decodeImage(result);
+		if (!raw) {
+			const shape = typeof result === 'object' && result ? Object.keys(result).join(',') : typeof result;
+			console.warn(`No image field in model output on attempt ${attempt} (got: ${shape}) — regenerating.`);
+			continue;
+		}
+		const bytes = await shrink(raw, env);
 		if (bytes.length >= MIN_IMAGE_BYTES) return { bytes, ...imageInfo(bytes) };
 		console.warn(`Blank/suspicious image on attempt ${attempt} (${bytes.length} bytes) — regenerating.`);
 	}
