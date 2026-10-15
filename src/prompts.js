@@ -67,3 +67,17 @@ export const QUOTE_LENSES = [
 	'taking the first step of a trip you keep postponing',
 	'being quietly useful without announcing it',
 ];
+
+export const QUOTE_VOICES = [
+	// Confucian: measured, relational, practice over theory
+	'in the manner of Confucius: calm, measured, about conduct and character. Favour a balanced contrast or a conditional ("The one who... finds...")',
+	// Proverb: short, folk-wise, hard-won
+	'as an old proverb: very short, plain words, a hard-won truth stated as fact',
+	// Zen/Taoist: paradox, gentle reversal
+	'in a Taoist or Zen spirit: a gentle paradox where the obvious thing turns out to be backwards',
+	// Stoic: direct, steady, a little stern
+	'in a Stoic tone: steady, direct, focused on what is within your control',
+	'in the manner of Confucius: a teacher speaking to a student, brief and unhurried',
+	// Yoda: rare, light touch
+	'in the voice of Yoda: inverted sentence order ("Patience, a skill it is"), but still wise and readable, not a parody',
+];

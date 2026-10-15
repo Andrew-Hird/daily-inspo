@@ -1,4 +1,4 @@
-import { PROMPTS, MINION_DESCRIPTOR, QUOTE_LENSES } from './prompts.js';
+import { PROMPTS, MINION_DESCRIPTOR, QUOTE_LENSES, QUOTE_VOICES } from './prompts.js';
 import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 
 const RESEND_API = 'https://api.resend.com';
@@ -52,25 +52,37 @@ export function getDailyPrompt(now) {
 }
 
 export function getDailyQuotePrompt(now) {
-	const lens = QUOTE_LENSES[nzDayOfYear(now) % QUOTE_LENSES.length];
-	return `Write one original uplifting quote for ${nzLongDate(now)} in New Zealand (${nzSeason(now)} in the Southern Hemisphere).
-Today's angle: ${lens}.
+	const day = nzDayOfYear(now);
+	const lens = QUOTE_LENSES[day % QUOTE_LENSES.length];
+	// offset so voice and lens don't cycle in lockstep
+	const voice = QUOTE_VOICES[(day * 7 + 3) % QUOTE_VOICES.length];
 
-Rules:
-- One sentence, max 20 words, concrete rather than poetic
-- Write it as a plain statement, observation, or piece of advice — NOT a described scene or moment. Do not narrate an action (e.g. "you shut down your laptop", "you shut the door behind you")
-- No sensory scene-setting: no describing light, weather, sounds, or physical sensations as part of a moment
-- Sound like a person, not a poster
-- If the season or weather comes up, it is ${nzSeason(now)} here — not the Northern Hemisphere calendar
-- Do not use these images: roots, seeds, soil, gardens, dawn, morning light, canvases, inner light, inner fire, unshakeable anything
-- No "believe in yourself", "you are enough", or "the journey" phrasing
-- Stand alone — no author, no quotation marks, no preamble
-- Do not mention New Zealand, Aotearoa, any specific city or town, or the hemisphere unless the angle requires it
+	return `Write one original piece of wisdom for ${nzLongDate(now)}. It is ${nzSeason(now)} in the Southern Hemisphere.
+		Today's angle: ${lens}.
+		Today's voice: ${voice}.
 
-Bad example (too much scene-setting, reads like fiction): "With a satisfied click, you shut down your laptop, letting the warmth of the evening envelop your workday's weary edges."
-Good example (plain, concrete, stands alone): "Leaving on time is not laziness, it is proof you trust tomorrow to hold the rest."
+		Rules:
+		- One or two short sentences, max 22 words total
+		- Aphoristic: compressed, balanced, memorable. Contrast, parallel structure, or a conditional ("When... then...") work well
+		- A timeless truth or piece of counsel, not a described scene. Do not narrate an action ("you shut down your laptop")
+		- Wise and calm, never preachy, never cutesy
+		- Keep the angle's subject recognisable, but state it as a universal principle, not a specific task
+		- No sensory scene-setting: no light, weather, sounds or physical sensations
+		- Do not use these images: roots, seeds, soil, gardens, dawn, morning light, canvases, inner light, inner fire, rivers, mountains, journeys, unshakeable anything
+		- No "believe in yourself", "you are enough", or "the journey" phrasing
+		- Do not imitate or name any real person; capture the voice only
+		- Stand alone: no author, no quotation marks, no preamble
+		- Do not mention New Zealand, Aotearoa, any city or town, or the hemisphere. If the season matters, it is ${nzSeason(now)}
 
-Output only the quote text.`;
+		Bad (scene-setting, reads like fiction): "With a satisfied click, you shut down your laptop, letting the warmth of the evening envelop your weary edges."
+		Bad (generic poster): "Every step forward is a victory worth celebrating."
+		Good (Confucian): "The one who asks for help early spends less than the one who is too proud to ask."
+		Good (paradox): "Rest taken without guilt restores more than rest taken in worry."
+		Good (Yoda, light): "Finish the small thing you must. Free, your mind becomes."
+
+		Output only the quote text.`
+		.replace(/^\t{2}/gm, '')
+		.trim();
 }
 
 export async function getQuote(env, now = new Date()) {
