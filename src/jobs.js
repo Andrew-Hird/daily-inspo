@@ -51,11 +51,19 @@ export function getDailyPrompt(now) {
 	return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}.`;
 }
 
-export function getDailyQuotePrompt(now) {
+// Single source for the day's angle and voice, so the prompt and the log line
+// can never disagree about what was actually sent.
+export function getQuoteAngle(now) {
 	const day = nzDayOfYear(now);
-	const lens = QUOTE_LENSES[day % QUOTE_LENSES.length];
-	// offset so voice and lens don't cycle in lockstep
-	const voice = QUOTE_VOICES[(day * 7 + 3) % QUOTE_VOICES.length];
+	return {
+		lens: QUOTE_LENSES[day % QUOTE_LENSES.length],
+		// offset so voice and lens don't cycle in lockstep
+		voice: QUOTE_VOICES[(day * 7 + 3) % QUOTE_VOICES.length],
+	};
+}
+
+export function getDailyQuotePrompt(now) {
+	const { lens, voice } = getQuoteAngle(now);
 
 	return `Write one original piece of wisdom for ${nzLongDate(now)}. It is ${nzSeason(now)} in the Southern Hemisphere.
 		Today's angle: ${lens}.
@@ -86,6 +94,8 @@ export function getDailyQuotePrompt(now) {
 }
 
 export async function getQuote(env, now = new Date()) {
+	const { lens, voice } = getQuoteAngle(now);
+	console.log(`Quote angle: ${lens} | voice: ${voice}`);
 	const result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
 		messages: [
 			{
