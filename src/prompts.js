@@ -1,3 +1,5 @@
+export const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
+
 export const PROMPTS = [
 	"A single Minion sitting cross-legged on a lily pad, soft watercolour painting style, muted pastels, misty Japanese pond at dawn, reflections in still water, meditative mood",
 	"A Minion as a hard-boiled detective in a rain-soaked noir city, bold black ink outlines, high contrast, 1940s comic panel composition, deep shadow, single yellow street lamp",
@@ -9,7 +11,7 @@ export const PROMPTS = [
 	"A Minion lounging on the deck of a 1930s ocean liner, Art Deco travel poster style, geometric sunburst border, gold and teal palette, streamline moderne aesthetic",
 	"A Minion caught mid-sneeze, detailed graphite pencil sketch, cross-hatching and fine linework, white paper texture, artist study composition, annotations around the figure",
 	"A Minion in a neon-lit cyberpunk alley, holographic advertisements reflected on wet pavement, magenta and cyan light, high contrast, cinematic wide shot, rain falling",
-	"A Minion depicted as a medieval knight in an illuminated manuscript border, gold leaf decoration, jewel-toned pigments, intricate floral margin illustrations, vellum texture",
+	`A large central Minion character holding a tiny sword and shield inside an illuminated manuscript border. ${MINION_DESCRIPTOR} Gold leaf decoration, jewel-toned pigments, intricate floral margin illustrations, vellum texture`,
 	"A Minion reduced to pure geometric shapes, minimalist flat design, three-colour palette (yellow, blue, white), centered on off-white background, no outlines, Bauhaus spirit",
 	"A Minion picnicking in a sun-drenched Monet-style garden, impressionist brushwork, dabs of pure colour, flower garden blurring into soft light, warm afternoon haze",
 	"A Minion in a cornfield at night, vintage 1980s horror movie poster style, lurid colour printing, film grain, long dramatic shadow, ominous full moon behind silhouetted corn stalks",
@@ -26,12 +28,10 @@ export const PROMPTS = [
 	"A Minion baking a wildly over-decorated cake, cheerful children's picture book illustration, gouache-style flat colour, simple rounded shapes, clean white background, joyful chaos",
 	"A Minion wearing a bowler hat standing in a Salvador Dali surrealist landscape, melting clocks, floating rocks, hyper-real rendering of an impossible scene, golden afternoon light",
 	"A Minion as seen through a thermal infrared camera, heat map colour gradient from cool blue to hot white, scientific imagery aesthetic, black background, temperature scale bar",
-	"A Minion hunting a dragon, medieval tapestry style, flat woven texture, muted wool colours, decorative woven border, Bayeux Tapestry composition",
+	`A large central Minion character facing a dragon and holding a tiny lance. ${MINION_DESCRIPTOR} Medieval tapestry style, flat woven texture, muted wool colours, decorative woven border, Bayeux Tapestry composition`,
 	"A Minion standing still while a city moves around it in long-exposure light trails, streaks of car lights, star trails overhead, photorealistic composite photography",
 	"A Minion dancing at a house party, risograph print style, deliberate colour misregistration, limited two-colour overlay (orange and teal), grainy ink texture, joyful loose linework",
 ];
-
-export const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
 
 // Rotated daily so Llama 3.2 3B does not collapse onto the same garden/dawn
 // metaphors when asked for a generic "inspirational quote".
