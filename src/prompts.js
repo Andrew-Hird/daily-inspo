@@ -31,6 +31,18 @@ export const PROMPTS = [
 	`A large central Minion character facing a dragon and holding a tiny lance. ${MINION_DESCRIPTOR} Medieval tapestry style, flat woven texture, muted wool colours, decorative woven border, Bayeux Tapestry composition`,
 	"A Minion standing still while a city moves around it in long-exposure light trails, streaks of car lights, star trails overhead, photorealistic composite photography",
 	"A Minion dancing at a house party, risograph print style, deliberate colour misregistration, limited two-colour overlay (orange and teal), grainy ink texture, joyful loose linework",
+	`A large central Minion character sitting alone at the counter of an empty diner at night. ${MINION_DESCRIPTOR} Edward Hopper-style oil painting, stark fluorescent light against deep shadow, dark empty street outside the window, quiet isolation`,
+	"A Minion as a 1950s sci-fi pulp magazine cover, painted illustration, lurid orange sky, rocket ship in the background, blank area for title lettering at the top, dramatic low angle",
+	"A Minion carved as a miniature wooden folk-art figure, visible chisel marks, hand-painted in worn primary colours, sitting on a workshop shelf, shallow depth of field macro photograph",
+	"A Minion made from folded origami paper, soft studio lighting, visible crease lines, pastel paper textures, plain seamless background, shallow depth of field",
+	`A large central Minion character posed in a Victorian cabinet card photograph. ${MINION_DESCRIPTOR} Sepia tone, soft vignette, ornate card mount, faded corners, painted studio backdrop`,
+	"A Minion in a Studio Ghibli-inspired countryside scene, hand-painted watercolour background, towering cumulus clouds, tall summer grass moving in the wind, gentle warm light",
+	"A Minion as a vintage matchbox label design, bold flat colours, thick outlines, halftone shading, worn paper edges, sunburst behind the figure, retro advertising feel",
+	"A Minion sculpted in claymation style, visible thumbprints in the clay, soft studio lighting, handmade miniature set with cardboard scenery, slightly wobbly stop-motion charm",
+	`A large central Minion character standing in profile pose as an Egyptian tomb wall painting. ${MINION_DESCRIPTOR} Hieroglyphic columns either side, flat colour on sandstone texture, ochre, turquoise and black palette`,
+	"A Minion as a layered paper-cut shadowbox, stacked cut-paper layers in warm sunset colours, soft shadows between layers, depth created by overlapping silhouettes, backlit glow",
+	`A large central Minion character at a backyard barbecue in a faded 1970s Kodachrome snapshot. ${MINION_DESCRIPTOR} Slightly overexposed, warm orange colour cast, soft focus, rounded photo corners`,
+	"A Minion as a giant brutalist concrete monument in a plaza, raw board-formed concrete texture, harsh overcast daylight, tiny people for scale, documentary architecture photograph",
 ];
 
 // Rotated daily so Llama 3.2 3B does not collapse onto the same garden/dawn
