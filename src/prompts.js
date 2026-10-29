@@ -78,6 +78,20 @@ export const QUOTE_LENSES = [
 	'staying with a hard page of a book',
 	'taking the first step of a trip you keep postponing',
 	'being quietly useful without announcing it',
+	'tidying something no one will ever notice',
+	'listening without preparing your reply',
+	'letting go of a small slight',
+	'saying no to a request you would only resent',
+	'returning something you borrowed, on time',
+	'doing a job properly when a shortcut would never be noticed',
+	'thanking someone specifically, not generically',
+	'accepting a compliment without deflecting it',
+	'sitting in a silence instead of rushing to fill it',
+	'reaching out to a friend after a long gap',
+	'maintaining something old instead of chasing something new',
+	'waiting for a result you cannot hurry',
+	'keeping a small tradition alive in a busy week'
+	
 ];
 
 export const QUOTE_VOICES = [
