@@ -12,7 +12,7 @@ export const PROMPTS = [
 	"A Minion caught mid-sneeze, detailed graphite pencil sketch, cross-hatching and fine linework, white paper texture, artist study composition, annotations around the figure",
 	"A Minion in a neon-lit cyberpunk alley, holographic advertisements reflected on wet pavement, magenta and cyan light, high contrast, cinematic wide shot, rain falling",
 	`A large central Minion character holding a tiny sword and shield inside an illuminated manuscript border. ${MINION_DESCRIPTOR} Gold leaf decoration, jewel-toned pigments, intricate floral margin illustrations, vellum texture`,
-	"A Minion reduced to pure geometric shapes, minimalist flat design, three-colour palette (yellow, blue, white), centered on off-white background, no outlines, Bauhaus spirit",
+	"A Minion built from simple flat geometric shapes, minimalist flat design, limited palette of yellow, blue and white, centred on an off-white background, Bauhaus-inspired",
 	"A Minion picnicking in a sun-drenched Monet-style garden, impressionist brushwork, dabs of pure colour, flower garden blurring into soft light, warm afternoon haze",
 	"A Minion in a cornfield at night, vintage 1980s horror movie poster style, lurid colour printing, film grain, long dramatic shadow, ominous full moon behind silhouetted corn stalks",
 	"A Minion dissected as a naturalist scientific illustration, Victorian specimen diagram style, detailed anatomical annotations, sepia ink on cream paper",
