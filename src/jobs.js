@@ -93,10 +93,28 @@ export function getDailyQuotePrompt(now) {
 		.trim();
 }
 
+// Workers AI chat models don't share one output shape: older ones return
+// { response }, newer ones return an OpenAI-style chat completion. Accept both,
+// and strip any reasoning block that leaks into the visible text.
+export function extractQuote(result) {
+	if (typeof result === 'string') return clean(result);
+	const choice = result?.choices?.[0];
+	let text = choice?.message?.content ?? result?.response ?? '';
+	if (Array.isArray(text)) text = text.map(part => part?.text ?? '').join('');
+	return clean(typeof text === 'string' ? text : '');
+}
+
+function clean(text) {
+	return text
+		.replace(/<\|channel>thought[\s\S]*?<channel\|>/g, '')
+		.replace(/<think>[\s\S]*?<\/think>/g, '')
+		.trim();
+}
+
 export async function getQuote(env, now = new Date()) {
 	const { lens, voice } = getQuoteAngle(now);
 	console.log(`Quote angle: ${lens} | voice: ${voice}`);
-	const result = await env.AI.run('@cf/meta/llama-3.2-3b-instruct', {
+	const result = await env.AI.run('@cf/google/gemma-4-26b-a4b-it', {
 		messages: [
 			{
 				role: 'system',
@@ -107,12 +125,18 @@ export async function getQuote(env, now = new Date()) {
 				content: getDailyQuotePrompt(now),
 			},
 		],
-		max_tokens: 100,
+		// Gemma 4 can spend part of the limit on reasoning tokens before it writes
+		// the quote, so leave generous headroom over the ~30 tokens the quote needs.
+		max_completion_tokens: 400,
 		temperature: 0.95,
 	});
-	const quote = (result.response || '').trim();
+	const finish = result?.choices?.[0]?.finish_reason;
+	const usage = result?.usage;
+	console.log(`Quote model: finish_reason=${finish} prompt_tokens=${usage?.prompt_tokens} completion_tokens=${usage?.completion_tokens} reasoning_tokens=${usage?.completion_tokens_details?.reasoning_tokens ?? 0}`);
+	const quote = extractQuote(result);
 	if (!quote) {
-		throw new Error('Cloudflare AI returned empty quote.');
+		const shape = typeof result === 'object' && result ? Object.keys(result).join(',') : typeof result;
+		throw new Error(`Cloudflare AI returned empty quote (finish_reason: ${finish}, output keys: ${shape}).`);
 	}
 	return { quote };
 }
