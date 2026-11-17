@@ -127,7 +127,7 @@ export async function getQuote(env, now = new Date()) {
 		],
 		// Gemma 4 can spend part of the limit on reasoning tokens before it writes
 		// the quote, so leave generous headroom over the ~30 tokens the quote needs.
-		max_completion_tokens: 400,
+		max_completion_tokens: 2000,
 		temperature: 0.95,
 	});
 	const finish = result?.choices?.[0]?.finish_reason;
