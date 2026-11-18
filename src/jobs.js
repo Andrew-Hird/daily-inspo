@@ -125,12 +125,16 @@ export async function getQuote(env, now = new Date()) {
 				content: getDailyQuotePrompt(now),
 			},
 		],
-		// Gemma 4 can spend part of the limit on reasoning tokens before it writes
-		// the quote, so leave generous headroom over the ~30 tokens the quote needs.
-		max_completion_tokens: 2000,
+		// Gemma 4 thinks by default (chat_template_kwargs.enable_thinking defaults to
+		// true). With thinking on it burned the whole token limit, 400 and then 2000,
+		// and returned no visible text (finish_reason=length). A quote needs no
+		// reasoning, so turn it off and keep a modest cap as a runaway guard.
+		chat_template_kwargs: { enable_thinking: false },
+		max_completion_tokens: 600,
 		temperature: 0.95,
 	});
 	const finish = result?.choices?.[0]?.finish_reason;
+	console.log(`Quote message keys: ${Object.keys(result?.choices?.[0]?.message ?? {}).join(',')}`);
 	const usage = result?.usage;
 	console.log(`Quote model: finish_reason=${finish} prompt_tokens=${usage?.prompt_tokens} completion_tokens=${usage?.completion_tokens} reasoning_tokens=${usage?.completion_tokens_details?.reasoning_tokens ?? 0}`);
 	const quote = extractQuote(result);
