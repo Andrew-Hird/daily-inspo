@@ -1,51 +1,60 @@
-export const MINION_DESCRIPTOR = "The character is unmistakably a Minion from Despicable Me: a small pill-capsule-shaped creature with smooth yellow skin, one or two large round eyes behind circular goggles, a black strap over the head, and wearing blue denim overalls.";
+// Short, always-included description of the character. The old per-prompt
+// descriptor only appeared in the prompts that drifted away from a Minion;
+// with styles, scenes and compositions mixed freely, every prompt gets this.
+export const MINION_LOOK = 'small yellow pill-shaped creature with one or two round goggles and blue denim overalls';
 
-export const PROMPTS = [
-	"A single Minion sitting cross-legged on a lily pad, soft watercolour painting style, muted pastels, misty Japanese pond at dawn, reflections in still water, meditative mood",
-	"A Minion as a hard-boiled detective in a rain-soaked noir city, bold black ink outlines, high contrast, 1940s comic panel composition, deep shadow, single yellow street lamp",
-	"A Minion in a full NASA spacesuit on the lunar surface, aged film grain texture, desaturated palette, Earth hanging in black sky, iconic Apollo-era photograph aesthetic",
-	"A Minion riding an enormous cresting ocean wave, ukiyo-e woodblock print style, Hokusai-inspired, flat graphic colour fields, foam spray as white negative space, Mount Fuji in the background",
-	"A Minion punching the air in triumph, Roy Lichtenstein pop art style, halftone dot pattern, primary colours only, bold black outlines, empty speech bubble",
-	"A Minion seated at a candlelit desk reading a massive dusty tome, Rembrandt oil painting style, dramatic chiaroscuro lighting, dark warm background, rich earthy tones",
-	"A Minion hero standing on a pixel-art castle battlement at sunset, classic SNES RPG style, limited 16-colour palette, chunky pixels, tiny stars beginning to appear",
-	"A Minion lounging on the deck of a 1930s ocean liner, Art Deco travel poster style, geometric sunburst border, gold and teal palette, streamline moderne aesthetic",
-	"A Minion caught mid-sneeze, detailed graphite pencil sketch, cross-hatching and fine linework, white paper texture, artist study composition, annotations around the figure",
-	"A Minion in a neon-lit cyberpunk alley, holographic advertisements reflected on wet pavement, magenta and cyan light, high contrast, cinematic wide shot, rain falling",
-	`A large central Minion character holding a tiny sword and shield inside an illuminated manuscript border. ${MINION_DESCRIPTOR} Gold leaf decoration, jewel-toned pigments, intricate floral margin illustrations, vellum texture`,
-	"A Minion built from simple flat geometric shapes, minimalist flat design, limited palette of yellow, blue and white, centred on an off-white background, Bauhaus-inspired",
-	"A Minion picnicking in a sun-drenched Monet-style garden, impressionist brushwork, dabs of pure colour, flower garden blurring into soft light, warm afternoon haze",
-	"A Minion in a cornfield at night, vintage 1980s horror movie poster style, lurid colour printing, film grain, long dramatic shadow, ominous full moon behind silhouetted corn stalks",
-	"A Minion dissected as a naturalist scientific illustration, Victorian specimen diagram style, detailed anatomical annotations, sepia ink on cream paper",
-	"A Minion portrait as a large-scale graffiti mural on a crumbling brick wall, spray-paint drips, urban textures, photographed straight-on in daylight",
-	"A Minion depicted in a Gothic cathedral stained glass window, lead caming outlines, jewel-saturated reds and blues, light streaming through, geometric tracery border",
-	"A Minion harvesting enormous vegetables in an allotment, bold linocut print style, high-contrast black and white, rough carved texture, diagonal hatching for shadow",
-	"A Minion pointing directly at the viewer, WW2 Uncle Sam poster style, flat graphic colour, patriotic red and yellow palette, heroic upward angle",
-	"A Minion studying at a cluttered desk late at night, lo-fi aesthetic, warm lamp light, coffee cup, open books, cassette player, rain on window, cozy and slightly melancholy mood",
-	"A Minion rendered as an engineering blueprint, white linework on Prussian blue background, dimension lines and callouts, isometric projection",
-	"A Minion dissolving into an Abstract Expressionist action painting, gestural brushstrokes, paint drips and splashes, de Kooning influence, raw emotional energy, large canvas scale",
-	"A Minion as a music festival headliner, Andy Warhol silk screen print style, repeated four-panel grid, each panel a different duo of vivid flat colours, high contrast",
-	"A Minion striding forward carrying a blank banner, Soviet constructivist poster style, diagonal geometric composition, red and black palette",
-	"A Minion baking a wildly over-decorated cake, cheerful children's picture book illustration, gouache-style flat colour, simple rounded shapes, clean white background, joyful chaos",
-	"A Minion wearing a bowler hat standing in a Salvador Dali surrealist landscape, melting clocks, floating rocks, hyper-real rendering of an impossible scene, golden afternoon light",
-	"A Minion as seen through a thermal infrared camera, heat map colour gradient from cool blue to hot white, scientific imagery aesthetic, black background, temperature scale bar",
-	`A large central Minion character facing a dragon and holding a tiny lance. ${MINION_DESCRIPTOR} Medieval tapestry style, flat woven texture, muted wool colours, decorative woven border, Bayeux Tapestry composition`,
-	"A Minion standing still while a city moves around it in long-exposure light trails, streaks of car lights, star trails overhead, photorealistic composite photography",
-	"A Minion dancing at a house party, risograph print style, deliberate colour misregistration, limited two-colour overlay (orange and teal), grainy ink texture, joyful loose linework",
-	`A large central Minion character sitting alone at the counter of an empty diner at night. ${MINION_DESCRIPTOR} Edward Hopper-style oil painting, stark fluorescent light against deep shadow, dark empty street outside the window, quiet isolation`,
-	"A Minion as a 1950s sci-fi pulp magazine cover, painted illustration, lurid orange sky, rocket ship in the background, blank area for title lettering at the top, dramatic low angle",
-	"A Minion carved as a miniature wooden folk-art figure, visible chisel marks, hand-painted in worn primary colours, sitting on a workshop shelf, shallow depth of field macro photograph",
-	"A Minion made from folded origami paper, soft studio lighting, visible crease lines, pastel paper textures, plain seamless background, shallow depth of field",
-	`A large central Minion character posed in a Victorian cabinet card photograph. ${MINION_DESCRIPTOR} Sepia tone, soft vignette, ornate card mount, faded corners, painted studio backdrop`,
-	"A Minion in a Studio Ghibli-inspired countryside scene, hand-painted watercolour background, towering cumulus clouds, tall summer grass moving in the wind, gentle warm light",
-	"A Minion as a vintage matchbox label design, bold flat colours, thick outlines, halftone shading, worn paper edges, sunburst behind the figure, retro advertising feel",
-	"A Minion sculpted in claymation style, visible thumbprints in the clay, soft studio lighting, handmade miniature set with cardboard scenery, slightly wobbly stop-motion charm",
-	`A large central Minion character standing in profile pose as an Egyptian tomb wall painting. ${MINION_DESCRIPTOR} Hieroglyphic columns either side, flat colour on sandstone texture, ochre, turquoise and black palette`,
-	"A Minion as a layered paper-cut shadowbox, stacked cut-paper layers in warm sunset colours, soft shadows between layers, depth created by overlapping silhouettes, backlit glow",
-	`A large central Minion character at a backyard barbecue in a faded 1970s Kodachrome snapshot. ${MINION_DESCRIPTOR} Slightly overexposed, warm orange colour cast, soft focus, rounded photo corners`,
-	"A Minion as a giant brutalist concrete monument in a plaza, raw board-formed concrete texture, harsh overcast daylight, tiny people for scale, documentary architecture photograph",
+// Image prompts are built from independent parts, each picked on its own cycle.
+// The list lengths (17, 13, 7) are distinct primes, so a given scene, style and
+// composition combination repeats only every 17 x 13 x 7 = 1547 days.
+// Keep the lengths coprime if you add or remove entries.
+
+export const IMAGE_SCENES = [
+	'sitting cross-legged on a lily pad in a still misty pond',
+	'baking an over-decorated cake in a cluttered kitchen',
+	'reading an enormous dusty book at a desk by candlelight',
+	'riding a big cresting ocean wave on a surfboard',
+	'waiting at a rainy bus stop holding a tiny umbrella',
+	'picnicking in a flower garden with a wicker basket',
+	'fixing a bicycle in a cluttered workshop',
+	'standing on a castle battlement at sunset holding a small flag',
+	'dancing at a lively house party',
+	'harvesting enormous vegetables in an allotment',
+	'stargazing through a telescope on a hilltop at night',
+	'serving coffee behind the counter of a small cafe',
+	'sailing a paper boat down a rain-filled gutter',
+	'conducting a small orchestra of tiny instruments',
+	'walking a very large friendly dog along a beach',
+	'painting a landscape at an easel in a meadow',
+	'sitting alone at the counter of an empty diner late at night',
 ];
 
-// Rotated daily so Llama 3.2 3B does not collapse onto the same garden/dawn
+export const IMAGE_STYLES = [
+	'soft watercolour painting, muted pastels, visible paper texture',
+	'bold linocut print, high contrast, rough carved texture',
+	'claymation style, visible thumbprints in the clay, handmade miniature set',
+	'ukiyo-e woodblock print, flat colour fields, fine ink outlines',
+	'impressionist oil painting, dabs of bright colour, soft hazy light',
+	'risograph print, two-colour overlay of orange and teal, grainy ink texture, slight colour misregistration',
+	'engineering blueprint drawing, white linework on a Prussian blue background, dimension lines and callouts',
+	'pixel art, classic SNES RPG style, limited 16-colour palette, chunky pixels',
+	'layered paper-cut shadowbox, stacked cut-paper layers, soft shadows between layers',
+	'medieval tapestry style, flat woven texture, muted wool colours, decorative woven border',
+	'1950s picture book illustration, gouache, flat colour, simple rounded shapes',
+	'detailed graphite pencil sketch, cross-hatching, fine linework, white paper texture',
+	'stained glass window, lead outlines, jewel-saturated colour, geometric border',
+];
+
+export const IMAGE_COMPOSITIONS = [
+	'centred figure, medium shot at eye level',
+	'extreme close-up of the face and goggles',
+	'wide shot with a small but clearly visible figure in a large scene',
+	'three-quarter view from slightly above',
+	'top-down aerial view',
+	'low angle looking up, heroic framing',
+	'off-centre figure with generous empty space on one side',
+];
+
+// Rotated daily so the quote model does not collapse onto the same garden/dawn
 // metaphors when asked for a generic "inspirational quote".
 export const QUOTE_LENSES = [
 	'finishing a small, unglamorous task you have been avoiding',
@@ -90,8 +99,7 @@ export const QUOTE_LENSES = [
 	'reaching out to a friend after a long gap',
 	'maintaining something old instead of chasing something new',
 	'waiting for a result you cannot hurry',
-	'keeping a small tradition alive in a busy week'
-	
+	'keeping a small tradition alive in a busy week',
 ];
 
 export const QUOTE_VOICES = [

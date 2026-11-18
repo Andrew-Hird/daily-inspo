@@ -1,5 +1,5 @@
-import { PROMPTS, MINION_DESCRIPTOR, QUOTE_LENSES, QUOTE_VOICES } from './prompts.js';
-import { NZ, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
+import { MINION_LOOK, IMAGE_SCENES, IMAGE_STYLES, IMAGE_COMPOSITIONS, QUOTE_LENSES, QUOTE_VOICES } from './prompts.js';
+import { NZ, nzDateKey, nzDayOfYear, nzLongDate, nzSeason, subjectFor } from './time.js';
 
 const RESEND_API = 'https://api.resend.com';
 const HEALTHCHECK_API = 'https://hc-ping.com';
@@ -45,10 +45,33 @@ export async function fetchWithRetry(url, maxRetries = 3, options = {}) {
 	throw lastError;
 }
 
+// Days since 1970-01-01 for the NZ calendar date. Unlike nzDayOfYear this never
+// resets in January, so the image part cycles don't line up again every year.
+export function nzDayNumber(now) {
+	const [year, month, day] = nzDateKey(now).split('-').map(Number);
+	return Math.floor(Date.UTC(year, month - 1, day) / 864e5);
+}
+
+// Step through a list by a stride that shares no factor with its length: every
+// entry still comes up once per cycle, but neighbouring days no longer follow
+// list order. Keep each stride coprime with its list's length (5 with 17, 5 with
+// 13, 3 with 7), and re-check the strides if you add or remove entries.
+const pick = (list, n, stride) => list[(n * stride) % list.length];
+
+// Scene, style and composition each cycle on their own list length (17, 13, 7:
+// coprime), so the same combination takes 1547 days to come round again.
+export function getImageParts(now) {
+	const n = nzDayNumber(now);
+	return {
+		scene: pick(IMAGE_SCENES, n, 5),
+		style: pick(IMAGE_STYLES, n, 5),
+		composition: pick(IMAGE_COMPOSITIONS, n, 3),
+	};
+}
+
 export function getDailyPrompt(now) {
-	// MINION_DESCRIPTOR is temporarily disabled (trial run without it). To restore, uncomment:
-	// return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}. ${MINION_DESCRIPTOR}`;
-	return `${PROMPTS[nzDayOfYear(now) % PROMPTS.length]}.`;
+	const { scene, style, composition } = getImageParts(now);
+	return `A Minion (${MINION_LOOK}) ${scene}, ${composition}, ${style}.`;
 }
 
 // Single source for the day's angle and voice, so the prompt and the log line
